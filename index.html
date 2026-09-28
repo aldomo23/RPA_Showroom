@@ -791,15 +791,15 @@ a{color:inherit}
      When the visitor stops scrolling, the background plays a short stretch of the same clip
      forward and back (about 1 s each way), so the frame never looks frozen.
      When scrolling resumes it eases back to the exact frame for that scroll position. */
-  const IDLE = { range: 1.0, period: 4200, waitMs: 450, amount: 0, t0: 0, idle: false, offset: 0 };
+  const IDLE = { range: 1.0, period: 2200, waitMs: 150, amount: 0, t0: 0, idle: false, offset: 0 };
   let lastY = scrollY, stillSince = performance.now();
   function updateIdle(now) {
-    if (Math.abs(scrollY - lastY) > .5 || Math.abs(scrollY - smoothY) > 1) stillSince = now;
+    if (Math.abs(scrollY - lastY) > .5 || Math.abs(scrollY - smoothY) > 6) stillSince = now;
     lastY = scrollY;
     const idle = !reduce && !document.hidden && now - stillSince > IDLE.waitMs;
     if (idle && !IDLE.idle) IDLE.t0 = now;
     IDLE.idle = idle;
-    IDLE.amount += ((idle ? 1 : 0) - IDLE.amount) * (idle ? .05 : .18);
+    IDLE.amount += ((idle ? 1 : 0) - IDLE.amount) * (idle ? .25 : .25);
     const phase = (now - IDLE.t0) / IDLE.period;
     IDLE.offset = IDLE.range * IDLE.amount * (1 - Math.cos(2 * Math.PI * phase)) / 2;
   }
