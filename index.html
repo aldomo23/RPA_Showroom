@@ -130,6 +130,7 @@ a{color:inherit}
 
 .spacer{height:80vh}
 .spacer-long{height:150vh}
+.spacer-hero{height:200vh}
 
 /* ---------- sección: llega la solicitud ---------- */
 .split{flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:40px}
@@ -363,7 +364,7 @@ a{color:inherit}
           <div class="case-body">
             <p class="case-title">Una solicitud crítica, resuelta de principio a fin</p>
             <p class="case-meta mono">Caso simulado · 5 pasos</p>
-            <a class="btn btn-primary" href="#recorrido">Empezar el recorrido
+            <a class="btn btn-primary" href="#recorrido" data-scroll-ms="8500">Empezar el recorrido
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
             </a>
           </div>
@@ -371,7 +372,7 @@ a{color:inherit}
       </div>
     </section>
 
-    <div class="spacer" aria-hidden="true"></div>
+    <div class="spacer spacer-hero" aria-hidden="true"></div>
 
     <!-- ================= INTRO DEL RECORRIDO ================= -->
     <section class="sec" id="recorrido" aria-labelledby="h2">
@@ -906,11 +907,18 @@ a{color:inherit}
   }
 
   /* ---------- slow scroll for in-page links ---------- */
-  const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  // Speed stays almost constant (only short soft start/stop), so the background video plays evenly.
+  const EASE_EDGE = .14;
+  const ease = t => {
+    const a = EASE_EDGE, k = 2 * a * (1 - a);
+    if (t < a) return t * t / k;
+    if (t > 1 - a) return 1 - (1 - t) * (1 - t) / k;
+    return (t - a / 2) / (1 - a);
+  };
   let scrollJob = 0;
-  function slowScrollTo(el) {
+  function slowScrollTo(el, fixedMs) {
     const start = scrollY, end = el.getBoundingClientRect().top + scrollY, dist = end - start;
-    const dur = Math.max(1600, Math.min(6500, Math.abs(dist) / innerHeight * 2800) - 1000);
+    const dur = fixedMs || Math.max(1600, Math.min(6500, Math.abs(dist) / innerHeight * 2800) - 1000);
     const job = ++scrollJob, t0 = performance.now();
     const stop = () => { scrollJob++; };
     addEventListener('wheel', stop, { once: true, passive: true });
@@ -930,7 +938,7 @@ a{color:inherit}
     if (!el) return;
     e.preventDefault();
     if (reduce) { el.scrollIntoView(); return; }
-    slowScrollTo(el);
+    slowScrollTo(el, +a.dataset.scrollMs || 0);
   }));
 
   addEventListener('resize', () => { sizeStage(); measure(); });
