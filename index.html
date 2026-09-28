@@ -99,10 +99,10 @@ a{color:inherit}
 @media (min-width:768px){ .bottom2{flex-direction:row; align-items:flex-end; justify-content:space-between; gap:64px} }
 .col{max-width:36rem}
 #recorrido{padding-top:88px}
-#solicitud, #analiza, #rpa{padding-top:88px}
-@media (min-width:768px){ #solicitud, #analiza, #rpa{padding-top:96px} }
+#solicitud, #analiza, #rpa, #excepcion{padding-top:88px}
+@media (min-width:768px){ #solicitud, #analiza, #rpa, #excepcion{padding-top:96px} }
 #recorrido .bottom2{margin-top:0}
-@media (min-width:768px) and (max-height:760px){ #rpa .h1{font-size:52px} #rpa .ctas{margin-top:18px} #analiza .h1{font-size:52px} #analiza .ctas{margin-top:18px} #solicitud .h1{font-size:52px} #solicitud .asks{margin-top:14px; gap:6px} #solicitud .ctas{margin-top:18px} #recorrido .h1{font-size:56px} #recorrido .lead2{margin:14px 0 18px} #recorrido .body2{margin-top:16px} #recorrido .ctas{margin-top:20px} }
+@media (min-width:768px) and (max-height:760px){ #excepcion .h1{font-size:52px} #excepcion .ctas{margin-top:18px} .rev-body{gap:8px} #rpa .h1{font-size:52px} #rpa .ctas{margin-top:18px} #analiza .h1{font-size:52px} #analiza .ctas{margin-top:18px} #solicitud .h1{font-size:52px} #solicitud .asks{margin-top:14px; gap:6px} #solicitud .ctas{margin-top:18px} #recorrido .h1{font-size:56px} #recorrido .lead2{margin:14px 0 18px} #recorrido .body2{margin-top:16px} #recorrido .ctas{margin-top:20px} }
 @media (min-width:768px){
   #recorrido{padding-top:96px}
   #recorrido .bottom2{align-items:stretch; justify-content:space-between}
@@ -243,6 +243,52 @@ a{color:inherit}
 .cc-foot .exc{color:var(--gold)}
 @media (max-width:520px){ .bots{grid-template-columns:1fr} }
 @media (prefers-reduced-motion:reduce){ .bot[data-state="run"] .chip::before{animation:none} }
+
+/* ---------- sección: revisión humana ---------- */
+#excepcion .col{max-width:33rem}
+.rev{width:100%; max-width:34rem; border-radius:16px; background:rgba(12,15,22,.64); overflow:hidden}
+.rev-head{display:flex; align-items:center; gap:10px; padding:11px 14px 11px 16px; border-bottom:1px solid rgba(255,255,255,.14); font-size:11px}
+.rev-head .dim{color:rgba(255,255,255,.6)}
+.rev-state{margin-left:auto}
+.rev .chip{font-size:10px}
+.rev[data-state="pending"] .rev-state{background:rgba(242,179,94,.18); color:var(--gold)}
+.rev[data-state="valid"] .rev-state, .rev[data-state="done"] .rev-state{background:rgba(143,227,184,.16); color:#8FE3B8}
+.rev[data-state="pending"] .rev-state::before{animation:blink 1.2s infinite}
+.rev-body{padding:12px 16px 14px; display:grid; gap:10px}
+.ev{display:grid; grid-template-columns:7.5rem 1fr; gap:4px 14px; font-size:13px; line-height:1.45}
+.ev dt{color:rgba(255,255,255,.58)} .ev dd{margin:0; color:#fff}
+.ev .inc{color:var(--gold)}
+.quote{margin:0; font-size:13px; color:rgba(255,255,255,.85); font-style:italic}
+.sugg{display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:10px; font-size:13px; line-height:1.45;
+  background:rgba(242,179,94,.10); border:1px solid rgba(242,179,94,.4)}
+.sugg b{color:var(--gold); font-weight:600}
+.sugg svg{flex:none; width:16px; height:16px; margin-top:2px; color:var(--gold)}
+.field{display:grid; gap:6px}
+.field label{font-size:10px; color:rgba(255,255,255,.6)}
+.field input{width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.22); background:rgba(0,0,0,.3);
+  color:#fff; font:500 14px/1.2 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; letter-spacing:.04em; transition:border-color .25s ease, box-shadow .25s ease}
+.field input:focus{outline:none; border-color:#fff; box-shadow:0 0 0 3px rgba(255,255,255,.15)}
+.rev[data-state="valid"] .field input, .rev[data-state="done"] .field input{border-color:rgba(143,227,184,.7)}
+.field .hint{font-size:12px; color:rgba(255,255,255,.6); min-height:1.2em}
+.field .hint.bad{color:#FF9C8F}
+.acts{display:flex; flex-wrap:wrap; gap:8px}
+.act{appearance:none; border-radius:999px; padding:9px 14px; font:500 12.5px/1 var(--sans); cursor:pointer;
+  border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.08); color:#fff; transition:background .25s ease, opacity .25s ease}
+.act:hover{background:rgba(255,255,255,.18)}
+.act:focus-visible{outline:2px solid #fff; outline-offset:2px}
+.act.primary{background:#fff; color:#000; border-color:#fff}
+.act.primary:hover{background:rgba(255,255,255,.85)}
+.act:disabled{opacity:.4; cursor:not-allowed; background:rgba(255,255,255,.08); color:#fff; border-color:rgba(255,255,255,.25)}
+.rev-log{list-style:none; margin:0; padding:0; display:grid; gap:4px; font:11.5px/1.5 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace}
+.rev-log:empty{display:none}
+.rev-log li{color:rgba(255,255,255,.82); opacity:0; transform:translateY(4px); transition:opacity .4s ease, transform .4s ease}
+.rev-log li.in{opacity:1; transform:none}
+.rev-log .t{color:rgba(255,255,255,.45)} .rev-log .ok{color:#8FE3B8}
+.rev-foot{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 16px 12px; border-top:1px solid rgba(255,255,255,.12); font-size:12px; color:rgba(255,255,255,.7)}
+.rev-foot button{appearance:none; border:0; background:none; color:rgba(255,255,255,.75); font:500 12px var(--sans); cursor:pointer; text-decoration:underline; text-underline-offset:3px}
+.rev-foot button:hover{color:#fff}
+@media (max-width:520px){ .ev{grid-template-columns:1fr} }
+@media (prefers-reduced-motion:reduce){ .rev-log li{transition:none} .rev[data-state="pending"] .rev-state::before{animation:none} }
 
 .toast{position:fixed; left:16px; bottom:16px; z-index:60; max-width:22rem; padding:10px 14px; border-radius:10px;
   background:rgba(12,15,22,.85); border:1px solid rgba(255,255,255,.18); font-size:13px; line-height:1.4; display:none}
@@ -490,9 +536,60 @@ a{color:inherit}
       </div>
     </section>
 
-    <div class="spacer" id="t4" aria-hidden="true"></div>
+    <div class="spacer spacer-long" id="t4" aria-hidden="true"></div>
 
-    <section class="next" id="excepcion"><p class="shadow-md">Siguiente sección en construcción: Revisión humana.</p></section>
+    <section class="sec" id="excepcion" aria-labelledby="h6">
+      <div class="split">
+        <div class="col">
+          <span class="badge glass mono rv" style="--d:100ms">Paso 04 · Revisión humana</span>
+          <h2 class="h1 shadow-lg rv" id="h6" style="--d:200ms">Lo que no cuadra,<br>lo decide una persona.</h2>
+          <p class="body2 shadow-md rv" style="--d:300ms">El robot de pagos encontró el pago, pero la referencia está incompleta. La IA no la inventa: reúne la evidencia, propone una opción y le pasa el caso a una persona. Con su decisión, los robots retoman el flujo.</p>
+          <div class="ctas rv" style="--d:420ms">
+            <a class="btn btn-primary" href="#resultado">Ver el resultado
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <article class="rev glass rv" id="rev" data-state="pending" style="--d:250ms" aria-label="Revisión humana de la excepción (simulación)">
+          <header class="rev-head">
+            <span class="mono">Excepción · RPA-02 Pagos</span>
+            <span class="mono dim">MX-2026-0917</span>
+            <span class="chip rev-state" id="revState">Esperando revisión</span>
+          </header>
+          <div class="rev-body">
+            <dl class="ev">
+              <dt>Encontró el robot</dt><dd>Pago de septiembre · $849.00 · 02/09</dd>
+              <dt>Referencia</dt><dd class="inc" id="refFound">TX-2291-··· (incompleta)</dd>
+              <dt>Dijo la clienta</dt><dd><p class="quote">“Ya lo hice. Tengo el comprobante.”</p></dd>
+            </dl>
+            <div class="sugg" role="note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+              <span><b>Sugerencia de la IA: TX-2291-8847</b><br>En el estado bancario hay un movimiento de $849.00 del 02/09 con esa referencia. Coincide en monto y fecha, pero la IA no lo da por hecho.</span>
+            </div>
+            <div class="field">
+              <label class="mono" for="refInput">Referencia de pago</label>
+              <input id="refInput" type="text" value="TX-2291-" autocomplete="off" spellcheck="false" inputmode="text" aria-describedby="refHint">
+              <span class="hint" id="refHint">Aprueba la sugerencia o corrige el dato.</span>
+            </div>
+            <div class="acts">
+              <button class="act" type="button" id="actApprove">Aprobar sugerencia</button>
+              <button class="act" type="button" id="actCorrect">Corregir dato</button>
+              <button class="act primary" type="button" id="actResume" disabled>Reanudar flujo</button>
+            </div>
+            <ol class="rev-log" id="revLog" aria-live="polite"></ol>
+          </div>
+          <footer class="rev-foot">
+            <span id="revAudit">Toda decisión queda registrada.</span>
+            <button type="button" id="revReset">Repetir</button>
+          </footer>
+        </article>
+      </div>
+    </section>
+
+    <div class="spacer" id="t5" aria-hidden="true"></div>
+
+    <section class="next" id="resultado"><p class="shadow-md">Siguiente sección en construcción: Resultado.</p></section>
   </main>
 </div>
 <div class="toast" id="toast" role="status"></div>
@@ -523,6 +620,8 @@ a{color:inherit}
     { src: 'media/02-destello.mp4', poster: 'media/02-destello.jpg', shade: .22, range: () => [fullyRead('solicitud') + innerHeight * .9, fullyRead('analiza')] },
     // Energía: entre el Paso 2 y el Paso 3; se apaga, arranca de nuevo y se forman varias órbitas (los robots)
     { src: 'media/03-energia.mp4',  poster: 'media/03-energia.jpg',  shade: .22, range: () => [fullyRead('analiza'), fullyRead('rpa')] },
+    // Apertura del núcleo: entre el Paso 3 y el Paso 4; el sistema "se abre" para que una persona revise el caso
+    { src: 'media/04-apertura.mp4', poster: 'media/04-apertura.jpg', shade: .26, range: () => [fullyRead('rpa'), fullyRead('excepcion')] },
   ];
 
   const bgfx = document.getElementById('bgfx');
@@ -724,6 +823,61 @@ a{color:inherit}
     el.addEventListener('pointerenter', () => cc.dataset.focus = el.dataset.r);
     el.addEventListener('pointerleave', () => delete cc.dataset.focus);
   });
+
+  /* ---------- revisión humana (simulación interactiva) ---------- */
+  const rev = document.getElementById('rev');
+  const refInput = document.getElementById('refInput'), refHint = document.getElementById('refHint');
+  const revState = document.getElementById('revState'), revLog = document.getElementById('revLog'), revAudit = document.getElementById('revAudit');
+  const actApprove = document.getElementById('actApprove'), actCorrect = document.getElementById('actCorrect'), actResume = document.getElementById('actResume');
+  const SUGGESTED = 'TX-2291-8847', REF_OK = /^TX-\d{4}-\d{4}$/;
+  let revRun = 0;
+  function setRev(state, chip) { rev.dataset.state = state; revState.textContent = chip; }
+  function resetRev() {
+    revRun++;
+    setRev('pending', 'Esperando revisión');
+    refInput.value = 'TX-2291-'; refInput.disabled = false;
+    refHint.textContent = 'Aprueba la sugerencia o corrige el dato.'; refHint.classList.remove('bad');
+    actApprove.disabled = false; actCorrect.disabled = false; actResume.disabled = true;
+    revLog.innerHTML = ''; revAudit.textContent = 'Toda decisión queda registrada.';
+    const rf = document.getElementById('refFound'); rf.textContent = 'TX-2291-··· (incompleta)'; rf.className = 'inc';
+  }
+  function validate(source) {
+    const v = refInput.value.trim().toUpperCase();
+    if (REF_OK.test(v)) {
+      refInput.value = v;
+      setRev('valid', source === 'ia' ? 'Sugerencia aprobada' : 'Dato corregido');
+      refHint.textContent = source === 'ia' ? 'Referencia confirmada. Ya puedes reanudar el flujo.' : 'Formato correcto. Ya puedes reanudar el flujo.';
+      refHint.classList.remove('bad'); actResume.disabled = false;
+      revAudit.textContent = (source === 'ia' ? 'Sugerencia aprobada' : 'Referencia corregida') + ' por back office · 09:16:38';
+    } else {
+      if (rev.dataset.state !== 'done') setRev('pending', 'Esperando revisión');
+      actResume.disabled = true;
+      refHint.textContent = v.length >= 12 ? 'Formato esperado: TX-0000-0000' : 'Completa la referencia (formato TX-0000-0000).';
+      refHint.classList.toggle('bad', v.length >= 12);
+    }
+  }
+  actApprove.addEventListener('click', () => { refInput.value = SUGGESTED; validate('ia'); actResume.focus(); });
+  actCorrect.addEventListener('click', () => { refInput.focus(); const n = refInput.value.length; refInput.setSelectionRange(n, n); refHint.textContent = 'Escribe la referencia completa del comprobante.'; refHint.classList.remove('bad'); });
+  refInput.addEventListener('input', () => validate('human'));
+  refInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !actResume.disabled) actResume.click(); });
+  actResume.addEventListener('click', () => {
+    const run = ++revRun, ref = refInput.value;
+    refInput.disabled = true; actApprove.disabled = true; actCorrect.disabled = true; actResume.disabled = true;
+    setRev('valid', 'Reanudando…');
+    const lines = [
+      ['09:16:41', 'RPA-02', 'Pago validado con referencia ' + ref],
+      ['09:16:43', 'RPA-06', 'Confirmación enviada a la clienta por SMS y correo'],
+      ['09:16:44', 'Caso', 'MX-2026-0917 cerrado · 6 de 6 tareas completadas'],
+    ];
+    lines.forEach(([t, who, txt], i) => setTimeout(() => {
+      if (run !== revRun) return;
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="t">${t}</span> <span class="ok">${who}</span> `; li.appendChild(document.createTextNode(txt));
+      revLog.appendChild(li); requestAnimationFrame(() => li.classList.add('in'));
+      if (i === lines.length - 1) { setRev('done', 'Flujo reanudado'); revAudit.textContent = 'Decisión registrada en el caso · trazabilidad completa'; refHint.textContent = 'Flujo reanudado con la referencia confirmada.'; const rf = document.getElementById('refFound'); rf.textContent = ref + ' (confirmada)'; rf.className = ''; }
+    }, reduce ? 0 : 500 + i * 700));
+  });
+  document.getElementById('revReset').addEventListener('click', resetRev);
 
   function loop(t) {
     renderBg();
