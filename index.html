@@ -27,7 +27,9 @@ a{color:inherit}
 
 /* ---------- scroll background ---------- */
 .bgfx{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; background:var(--bg)}
-.bgfx canvas{position:absolute; inset:0; width:100%; height:100%; opacity:0; transition:opacity .5s ease}
+.bgfx canvas{position:absolute; inset:0; width:100%; height:100%; opacity:0; transition:opacity .5s ease, filter .9s ease, transform .9s ease}
+/* while a section is being read, the background steps back: soft blur + a little darker */
+.bgfx.reading canvas{filter:blur(8px) brightness(.8); transform:scale(1.05)}
 .bgfx.on canvas{opacity:1}
 .bgfx video{position:absolute; width:2px; height:2px; opacity:0; left:0; top:0}
 .bgfx .shade{position:absolute; inset:0; background:rgba(8,10,14,1); opacity:0; z-index:1}
@@ -99,10 +101,10 @@ a{color:inherit}
 @media (min-width:768px){ .bottom2{flex-direction:row; align-items:flex-end; justify-content:space-between; gap:64px} }
 .col{max-width:36rem}
 #recorrido{padding-top:88px}
-#solicitud, #analiza, #rpa, #excepcion, #resultado{padding-top:88px}
-@media (min-width:768px){ #solicitud, #analiza, #rpa, #excepcion, #resultado{padding-top:96px} }
+#solicitud, #analiza, #rpa, #excepcion, #resultado, #genesys, #cierre{padding-top:88px}
+@media (min-width:768px){ #solicitud, #analiza, #rpa, #excepcion, #resultado, #genesys, #cierre{padding-top:96px} }
 #recorrido .bottom2{margin-top:0}
-@media (min-width:768px) and (max-height:760px){ #resultado .h1{font-size:52px} #resultado .ctas{margin-top:18px} .kpi b{font-size:22px} #excepcion .h1{font-size:52px} #excepcion .ctas{margin-top:18px} .rev-body{gap:8px} #rpa .h1{font-size:52px} #rpa .ctas{margin-top:18px} #analiza .h1{font-size:52px} #analiza .ctas{margin-top:18px} #solicitud .h1{font-size:52px} #solicitud .asks{margin-top:14px; gap:6px} #solicitud .ctas{margin-top:18px} #recorrido .h1{font-size:56px} #recorrido .lead2{margin:14px 0 18px} #recorrido .body2{margin-top:16px} #recorrido .ctas{margin-top:20px} }
+@media (min-width:768px) and (max-height:760px){ #genesys .h1{font-size:52px} #genesys .ctas{margin-top:18px} .node p{font-size:12.5px} .tech{margin-top:3px} #cierre .h1{font-size:52px} #cierre .ctas{margin-top:18px} .stage{padding:6px 0} #resultado .h1{font-size:52px} #resultado .ctas{margin-top:18px} .kpi b{font-size:22px} #excepcion .h1{font-size:52px} #excepcion .ctas{margin-top:18px} .rev-body{gap:8px} #rpa .h1{font-size:52px} #rpa .ctas{margin-top:18px} #analiza .h1{font-size:52px} #analiza .ctas{margin-top:18px} #solicitud .h1{font-size:52px} #solicitud .asks{margin-top:14px; gap:6px} #solicitud .ctas{margin-top:18px} #recorrido .h1{font-size:56px} #recorrido .lead2{margin:14px 0 18px} #recorrido .body2{margin-top:16px} #recorrido .ctas{margin-top:20px} }
 @media (min-width:768px){
   #recorrido{padding-top:96px}
   #recorrido .bottom2{align-items:stretch; justify-content:space-between}
@@ -145,7 +147,16 @@ a{color:inherit}
   background:var(--gold); color:#141414; font-size:12px; font-weight:600; font-variant-numeric:tabular-nums}
 .call{width:100%; max-width:32rem; border-radius:16px; padding:16px 20px 12px; background:rgba(12,15,22,.58)}
 .call-head{display:flex; align-items:center; gap:10px; font-size:11px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,.15)}
-.call-head .dim{margin-left:auto; color:rgba(255,255,255,.62)}
+.call-head .dim{margin-left:auto; color:rgba(255,255,255,.62); font-variant-numeric:tabular-nums}
+.call-head .phone{width:14px; height:14px; color:#8FE3B8}
+.wave{display:inline-flex; align-items:center; gap:2px; height:14px; margin-left:4px}
+.wave i{width:2px; height:30%; border-radius:2px; background:#8FE3B8; opacity:.85}
+.call.play .wave i{animation:wave 1.1s ease-in-out infinite}
+.wave i:nth-child(2){animation-delay:.15s} .wave i:nth-child(3){animation-delay:.3s} .wave i:nth-child(4){animation-delay:.45s}
+.wave i:nth-child(5){animation-delay:.6s} .wave i:nth-child(6){animation-delay:.75s} .wave i:nth-child(7){animation-delay:.9s}
+@keyframes wave{0%,100%{height:25%} 50%{height:100%}}
+.call.ended .wave i{animation:none; height:25%; opacity:.4}
+.call-sub{margin:10px 0 0; font-size:10px; color:rgba(255,255,255,.55)}
 .live{width:8px; height:8px; border-radius:50%; background:#FF6B5E; animation:live 1.6s infinite}
 @keyframes live{0%{box-shadow:0 0 0 0 rgba(255,107,94,.55)} 70%{box-shadow:0 0 0 8px rgba(255,107,94,0)} 100%{box-shadow:0 0 0 0 rgba(255,107,94,0)}}
 .lines{list-style:none; margin:0; padding:4px 0 0}
@@ -293,8 +304,8 @@ a{color:inherit}
 
 /* ---------- sección: resultado y trazabilidad ---------- */
 #resultado .col{max-width:33rem}
-.res{width:100%; max-width:34rem; border-radius:16px; background:rgba(12,15,22,.64); overflow:hidden}
-.res .ai-pane{padding:14px 18px 16px}
+.outcome{width:100%; max-width:34rem; border-radius:16px; background:rgba(12,15,22,.64); overflow:hidden}
+.outcome .ai-pane{padding:14px 18px 16px}
 .cmp{display:grid; gap:10px; margin-bottom:14px}
 .cmp-row{display:grid; grid-template-columns:8.5rem 1fr auto; align-items:center; gap:12px; font-size:13px}
 .cmp-row .lbl{color:rgba(255,255,255,.7)}
@@ -303,7 +314,7 @@ a{color:inherit}
 .cmp-bar i{display:block; height:100%; width:0; border-radius:8px; transition:width 1.4s cubic-bezier(.2,.8,.2,1); transition-delay:var(--bd,0ms)}
 .cmp-row.manual .cmp-bar i{background:rgba(255,255,255,.45)}
 .cmp-row.auto .cmp-bar i{background:#8FE3B8}
-.res.go .cmp-bar i{width:var(--w)}
+.outcome.go .cmp-bar i{width:var(--w)}
 .speed{margin:2px 0 0; font-size:12.5px; color:#8FE3B8}
 .kpis{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:8px}
 .kpi{padding:10px 12px; border-radius:12px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); transition:background .3s ease, border-color .3s ease}
@@ -322,10 +333,53 @@ a{color:inherit}
 @media (max-width:520px){ .cmp-row{grid-template-columns:1fr auto} .cmp-bar{grid-column:1 / -1} }
 @media (prefers-reduced-motion:reduce){ .cmp-bar i{transition:none} }
 
+/* ---------- cierre: RPA evoluciona ---------- */
+#cierre .col{max-width:33rem}
+.evo{width:100%; max-width:34rem; border-radius:16px; background:rgba(12,15,22,.64); padding:16px 18px 14px}
+.stages{list-style:none; margin:0 0 14px; padding:0; position:relative}
+.stages::before{content:""; position:absolute; left:15px; top:18px; bottom:18px; width:1px; background:linear-gradient(rgba(255,255,255,.35), var(--gold), rgba(255,255,255,.2))}
+.stage{position:relative; display:grid; grid-template-columns:32px 1fr; gap:12px; padding:9px 0}
+.stage .n{position:relative; z-index:1; display:grid; place-items:center; width:31px; height:31px; border-radius:50%;
+  background:rgba(12,15,22,.95); border:1px solid rgba(255,255,255,.3); font-size:11px; font-variant-numeric:tabular-nums}
+.stage.is-now .n{border-color:var(--gold); color:var(--gold); box-shadow:0 0 18px rgba(242,179,94,.35)}
+.stage.is-next .n{border-style:dashed}
+.stage h3{margin:0; display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:16px; font-weight:500}
+.stage .pill{font-size:10px; padding:3px 8px; border-radius:999px; background:rgba(255,255,255,.08); color:rgba(255,255,255,.7)}
+.stage.is-now .pill{background:rgba(242,179,94,.18); color:var(--gold)}
+.stage p{margin:4px 0 0; font-size:13.5px; line-height:1.5; color:rgba(255,255,255,.75)}
+.how{border-top:1px solid rgba(255,255,255,.14); padding-top:12px}
+.how ul{list-style:none; margin:0; padding:0; display:grid; gap:8px}
+.how li{display:grid; grid-template-columns:18px 1fr; gap:10px; font-size:13.5px; line-height:1.45; color:#fff}
+.how svg{width:16px; height:16px; margin-top:2px; color:#8FE3B8}
+.site-foot{margin-top:40px; padding-top:16px; border-top:1px solid rgba(255,255,255,.15); display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px 24px; font-size:12px; color:rgba(255,255,255,.7)}
+.spacer-short{height:40vh}
+
+/* ---------- sección: integración con Genesys ---------- */
+#genesys .col{max-width:33rem}
+.arch{width:100%; max-width:34rem; border-radius:16px; background:rgba(12,15,22,.64); padding:16px 18px 12px}
+.flowv{list-style:none; margin:0; padding:0; position:relative}
+.flowv::before{content:""; position:absolute; left:13px; top:16px; bottom:16px; width:2px; border-radius:2px;
+  background:linear-gradient(#8FE3B8, var(--gold) 30%, rgba(255,255,255,.5) 60%, #8FE3B8)}
+.flowv::after{content:""; position:absolute; left:10px; top:12px; width:8px; height:8px; border-radius:50%; background:#fff;
+  box-shadow:0 0 10px #fff; animation:packet 4.5s linear infinite}
+@keyframes packet{0%{top:12px; opacity:0} 8%{opacity:1} 92%{opacity:1} 100%{top:calc(100% - 20px); opacity:0}}
+.node{position:relative; display:grid; grid-template-columns:28px 1fr; gap:12px; padding:7px 0; border-radius:10px; transition:background .25s ease}
+.node:hover{background:rgba(255,255,255,.05)}
+.nb{position:relative; z-index:1; display:grid; place-items:center; width:28px; height:28px; border-radius:50%;
+  background:rgba(12,15,22,.95); border:1px solid rgba(255,255,255,.35); font-size:11px}
+.node.g .nb{border-color:#8FE3B8; color:#8FE3B8}
+.node.ia .nb{border-color:var(--gold); color:var(--gold)}
+.node h3{margin:3px 0 0; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:500}
+.node .pill{font-size:10px; padding:3px 8px; border-radius:999px; background:rgba(143,227,184,.16); color:#8FE3B8}
+.node p{margin:3px 0 0; font-size:13px; line-height:1.45; color:rgba(255,255,255,.75)}
+.tech{display:inline-block; margin-top:5px; font-size:10px; color:rgba(255,255,255,.5)}
+.arch-note{margin:8px 0 0; padding-top:8px; border-top:1px solid rgba(255,255,255,.12); font-size:11.5px; color:rgba(255,255,255,.55)}
+@media (prefers-reduced-motion:reduce){ .flowv::after{animation:none; opacity:0} }
+
 .toast{position:fixed; left:16px; bottom:16px; z-index:60; max-width:22rem; padding:10px 14px; border-radius:10px;
   background:rgba(12,15,22,.85); border:1px solid rgba(255,255,255,.18); font-size:13px; line-height:1.4; display:none}
 .toast.show{display:block}
-@media (prefers-reduced-motion:reduce){ .lines li, .call mark, .call mark .num{transition:none} .live{animation:none} }
+@media (prefers-reduced-motion:reduce){ .lines li, .call mark, .call mark .num{transition:none} .live, .call.play .wave i{animation:none} }
 .next{min-height:100vh; min-height:100svh; display:grid; place-items:center; padding:80px var(--px); text-align:center}
 .next p{margin:0; font-size:14px; color:rgba(255,255,255,.85)}
 
@@ -421,7 +475,7 @@ a{color:inherit}
         </div>
 
         <ol class="panel" aria-label="Lo que vas a ver">
-          <li class="step rv" style="--d:300ms"><span class="idx mono">01</span><div><h3>Llega la solicitud</h3><p>Una llamada con tres pedidos urgentes a la vez.</p></div></li>
+          <li class="step rv" style="--d:300ms"><span class="idx mono">01</span><div><h3>Llega la solicitud</h3><p>Una llamada de voz, por Genesys, con tres pedidos urgentes.</p></div></li>
           <li class="step rv" style="--d:410ms"><span class="idx mono">02</span><div><h3>La IA analiza</h3><p>Entiende la intención, extrae los datos y mide su confianza.</p></div></li>
           <li class="step rv" style="--d:520ms"><span class="idx mono">03</span><div><h3>El RPA ejecuta</h3><p>Seis robots trabajan en paralelo en CRM, pagos y agenda.</p></div></li>
           <li class="step rv" style="--d:630ms" data-exc><span class="idx mono">04</span><div><h3>Revisión humana</h3><p>Un pago con referencia incompleta pasa a una persona.</p></div></li>
@@ -437,7 +491,7 @@ a{color:inherit}
         <div class="col">
           <span class="badge glass mono rv" style="--d:100ms">Paso 01 · La solicitud</span>
           <h2 class="h1 shadow-lg rv" id="h3" style="--d:200ms">Todo empieza<br>con una llamada.</h2>
-          <p class="body2 shadow-md rv" style="--d:300ms">Laura Méndez, clienta de Meridian CX, se mudó ayer. Hoy necesita resolver tres cosas a la vez, y las pide en la misma llamada.</p>
+          <p class="body2 shadow-md rv" style="--d:300ms">Laura Méndez, clienta de Meridian CX, se mudó ayer. Llama al centro de contacto y la llamada entra por Genesys Cloud. En la misma llamada pide resolver tres cosas a la vez.</p>
           <ol class="asks shadow-md rv" style="--d:400ms" aria-label="Lo que pide la clienta">
             <li><span class="num">1</span>Cambiar la dirección de su servicio</li>
             <li><span class="num">2</span>Aclarar un pago que aparece pendiente</li>
@@ -452,10 +506,12 @@ a{color:inherit}
 
         <article class="call glass rv" id="call" style="--d:250ms" aria-label="Transcripción simulada de la llamada">
           <header class="call-head">
-            <span class="live" aria-hidden="true"></span>
-            <span class="mono">Llamada entrante</span>
-            <span class="mono dim">09:12 · Voz · 02:14</span>
+            <svg class="phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg>
+            <span class="mono">Llamada de voz · Genesys Cloud</span>
+            <span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+            <span class="mono dim">09:12 · 02:14</span>
           </header>
+          <p class="call-sub mono">Transcripción en tiempo real</p>
           <ol class="lines">
             <li class="ln-a" style="--i:0"><span class="who mono">Agente</span><p>Meridian CX, buenos días, le atiende Daniel. ¿En qué le puedo ayudar?</p></li>
             <li class="ln-c" style="--i:1"><span class="who mono">Clienta</span><p>Hola. Me mudé ayer y necesito <mark style="--md:0ms">cambiar la dirección de mi servicio<span class="num">1</span></mark>.</p></li>
@@ -475,7 +531,7 @@ a{color:inherit}
         <div class="col">
           <span class="badge glass mono rv" style="--d:100ms">Paso 02 · La IA analiza</span>
           <h2 class="h1 shadow-lg rv" id="h4" style="--d:200ms">La IA entiende<br>el caso en segundos.</h2>
-          <p class="body2 shadow-md rv" style="--d:300ms">Lee la llamada completa, separa las tres intenciones, extrae los datos que necesitan los robots y marca lo que no cuadra. No decide sola: prepara el trabajo para el RPA.</p>
+          <p class="body2 shadow-md rv" style="--d:300ms">Lee la transcripción de la llamada, separa las tres intenciones, extrae los datos que necesitan los robots y marca lo que no cuadra. No decide sola: prepara el trabajo para el RPA.</p>
           <div class="ctas rv" style="--d:420ms">
             <a class="btn btn-primary" href="#rpa">Ver a los robots en acción
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
@@ -628,13 +684,13 @@ a{color:inherit}
           <h2 class="h1 shadow-lg rv" id="h7" style="--d:200ms">Resuelto en minutos,<br>con todo registrado.</h2>
           <p class="body2 shadow-md rv" style="--d:300ms">La clienta recibe su confirmación en menos de cinco minutos. Los robots hicieron el trabajo repetible, la IA entendió y ordenó el caso, y una persona decidió lo único que no estaba claro. Cada paso quedó registrado.</p>
           <div class="ctas rv" style="--d:420ms">
-            <a class="btn btn-primary" href="#agentes">Del RPA a los agentes de IA
+            <a class="btn btn-primary" href="#genesys">Cómo se conecta con Genesys
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
             </a>
           </div>
         </div>
 
-        <article class="res ai glass rv" id="res" style="--d:250ms" aria-label="Resultado del caso (métricas simuladas)">
+        <article class="outcome ai glass rv" id="res" style="--d:250ms" aria-label="Resultado del caso (métricas simuladas)">
           <div class="ai-tabs" role="tablist">
             <button class="ai-tab" role="tab" id="rtab-a" aria-selected="true" aria-controls="rpane-a">Métricas</button>
             <button class="ai-tab" role="tab" id="rtab-b" aria-selected="false" aria-controls="rpane-b" tabindex="-1">Registro del caso</button>
@@ -669,9 +725,72 @@ a{color:inherit}
       </div>
     </section>
 
-    <div class="spacer" id="t6" aria-hidden="true"></div>
+    <div class="spacer spacer-short" id="t6" aria-hidden="true"></div>
 
-    <section class="next" id="agentes"><p class="shadow-md">Siguiente sección en construcción: Del RPA a los agentes de IA.</p></section>
+    <section class="sec" id="genesys" aria-labelledby="h9">
+      <div class="split">
+        <div class="col">
+          <span class="badge glass mono rv" style="--d:100ms">Integración</span>
+          <h2 class="h1 shadow-lg rv" id="h9" style="--d:200ms">Así se conecta<br>con Genesys.</h2>
+          <p class="body2 shadow-md rv" style="--d:300ms">Genesys Cloud ya es el canal de voz de la operación. La capa de IA y los robots se conectan a él sin cambiar cómo trabaja el agente: escuchan la llamada, ejecutan el trabajo y devuelven el resultado a su pantalla.</p>
+          <div class="ctas rv" style="--d:420ms">
+            <a class="btn btn-primary" href="#cierre">Ver el cierre
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <article class="arch glass rv" id="arch" style="--d:250ms" aria-label="Arquitectura de integración con Genesys Cloud">
+          <p class="ai-h mono">Del audio al resultado</p>
+          <ol class="flowv">
+            <li class="node g" data-k="1"><span class="nb mono">1</span><div><h3>Genesys Cloud <span class="pill mono">Voz</span></h3><p>La llamada entra por la cola de voz y se comparte en tiempo real.</p><span class="tech mono">AudioHook · transcripción de Genesys</span></div></li>
+            <li class="node ia" data-k="2"><span class="nb mono">2</span><div><h3>Capa de IA</h3><p>Voz a texto, intenciones, datos y nivel de confianza.</p><span class="tech mono">Voz a texto · modelo de IA</span></div></li>
+            <li class="node" data-k="3"><span class="nb mono">3</span><div><h3>Orquestador</h3><p>Reparte tareas, respeta dependencias y registra cada paso.</p><span class="tech mono">API · cola de tareas</span></div></li>
+            <li class="node" data-k="4"><span class="nb mono">4</span><div><h3>Robots RPA</h3><p>Ejecutan en CRM, pagos, domicilios, agenda y casos.</p><span class="tech mono">Robots en Python</span></div></li>
+            <li class="node g" data-k="5"><span class="nb mono">5</span><div><h3>De vuelta a Genesys</h3><p>El agente ve el resultado; las excepciones van a revisión humana.</p><span class="tech mono">Data Actions · widget del agente</span></div></li>
+          </ol>
+          <p class="arch-note">Las funciones disponibles dependen de la configuración y licencias de Genesys Cloud de cada operación.</p>
+        </article>
+      </div>
+    </section>
+
+    <div class="spacer spacer-short" aria-hidden="true"></div>
+
+    <section class="sec" id="cierre" aria-labelledby="h8">
+      <div class="split">
+        <div class="col">
+          <span class="badge glass mono rv" style="--d:100ms">Cierre</span>
+          <h2 class="h1 shadow-lg rv" id="h8" style="--d:200ms">RPA evoluciona.</h2>
+          <p class="body2 shadow-md rv" style="--d:300ms">El caso de hoy no reemplazó a los robots: les dio contexto. Esa es la evolución. El RPA sigue siendo el que ejecuta, y cada capa de IA lo prepara para resolver casos más complejos, con personas en las decisiones que importan.</p>
+          <div class="ctas rv" style="--d:420ms">
+            <a class="btn btn-primary" href="#top" data-scroll-ms="7000">Recorrer el caso otra vez
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <article class="evo glass rv" style="--d:250ms" aria-label="La evolución del RPA">
+          <p class="ai-h mono">La evolución</p>
+          <ol class="stages">
+            <li class="stage"><span class="n mono">01</span><div><h3>RPA <span class="pill mono">Base</span></h3><p>Ejecuta reglas fijas, rápido y auditable.</p></div></li>
+            <li class="stage is-now"><span class="n mono">02</span><div><h3>RPA + IA <span class="pill mono">Lo que viste hoy</span></h3><p>La IA entiende el caso y detecta excepciones; el RPA ejecuta.</p></div></li>
+            <li class="stage is-next"><span class="n mono">03</span><div><h3>Agentes de IA <span class="pill mono">Siguiente paso</span></h3><p>Planean y coordinan el trabajo usando a los robots como sus manos, con personas en los puntos de decisión.</p></div></li>
+          </ol>
+          <div class="how">
+            <p class="ai-h mono">Cómo se integra</p>
+            <ul>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Los robots que ya existen se vuelven herramientas; no se tiran.</span></li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>La IA entra por capas, empezando por un solo proceso.</span></li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>El control humano y la trazabilidad se diseñan desde el inicio.</span></li>
+            </ul>
+          </div>
+        </article>
+      </div>
+      <footer class="site-foot shadow-md">
+        <span>IT Solutions · RPA + IA</span>
+        <span>Meridian CX es una empresa ficticia. Datos, sistemas y métricas simulados.</span>
+      </footer>
+    </section>
   </main>
 </div>
 <div class="toast" id="toast" role="status"></div>
@@ -680,6 +799,9 @@ a{color:inherit}
 (() => {
   const VIDEO_URL = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260729_102822_0e6c87e8-c141-4744-bf32-ad30db296371.mp4";
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // A reload always starts at the beginning of the story (no restored scroll position)
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  if (!location.hash) scrollTo(0, 0);
 
   /* ---------- reveal on enter ---------- */
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .15 });
@@ -695,7 +817,7 @@ a{color:inherit}
   const fullyRead = id => { const el = document.getElementById(id); if (!el) return 0; return Math.min(maxScroll(), topOf(id) + Math.max(0, el.offsetHeight - innerHeight)); };
   const SEGMENTS = [
     // Hero (mismo video de CloudFront, preparado para scroll): hasta que "Caso simulado" queda completo en pantalla
-    { src: 'media/00-hero.mp4',     poster: 'media/00-hero.jpg',     fallback: HERO_URL, shade: 0,   range: () => [0, fullyRead('recorrido')] },
+    { src: 'media/00-hero.mp4',     poster: 'media/00-hero.jpg',     fallback: HERO_URL, shade: 0, idleRange: 3.5, idlePeriod: 6000, idleAtStart: false,   range: () => [0, fullyRead('recorrido')] },
     // Núcleo: acercamiento desde "Caso simulado", pasa por el Paso 1 y termina ya camino al Paso 2
     { src: 'media/01-nucleo.mp4',   poster: 'media/01-nucleo.jpg',   shade: .26, range: () => [fullyRead('recorrido'), fullyRead('solicitud') + innerHeight * .9] },
     // Destello y órbitas: entre el Paso 1 y el Paso 2; al llegar a "La IA analiza" ya se ven las órbitas
@@ -755,6 +877,15 @@ a{color:inherit}
 
   function measure() { segs.forEach(sg => { const [a, b] = sg.range(); sg.s = a; sg.e = Math.max(a + 1, b); }); }
 
+  // "Reading" = a content section (not the hero) is sitting on screen. Then the background calms down.
+  const readSecs = [...document.querySelectorAll('main > section.sec')].filter(el => el.id !== 'top');
+  let reading = false;
+  function updateReading() {
+    const vh = innerHeight;
+    const now = readSecs.some(el => { const r = el.getBoundingClientRect(); return r.top < vh * .3 && r.bottom > vh * .7; });
+    if (now !== reading) { reading = now; bgfx.classList.toggle('reading', reading); }
+  }
+
   // keep current segment and its neighbours loaded
   let lastCur = -1;
   function manage(y) {
@@ -780,8 +911,12 @@ a{color:inherit}
     }
     const end = Math.max(0, (v.duration || 0) - .05), base = p * end;
     // idle breathing: move forward from the parked frame (or backward if there is no room left) and come back
-    const dir = base + IDLE.range <= end ? 1 : -1;
-    const tt = clamp(base + dir * IDLE.offset, 0, end);
+    const range = sg.idleRange || IDLE.range, period = sg.idlePeriod || IDLE.period;
+    const atStart = sg.idleAtStart === false && (p < .02 || scrollY < innerHeight * .2);   // the very top of the page stays still
+    const calm = reading ? .3 : 1;   // much smaller movement while reading
+    const offset = atStart ? 0 : calm * range * IDLE.amount * (1 - Math.cos(2 * Math.PI * (IDLE.elapsed || 0) / period)) / 2;
+    const dir = base + range <= end ? 1 : -1;
+    const tt = clamp(base + dir * offset, 0, end);
     if (Math.abs(tt - sg.lastSeek) > 1 / 48 && !v.seeking) { v.currentTime = tt; sg.lastSeek = tt; }
     cover(v, v.videoWidth, v.videoHeight, alpha);
     return true;
@@ -800,14 +935,14 @@ a{color:inherit}
     if (idle && !IDLE.idle) IDLE.t0 = now;
     IDLE.idle = idle;
     IDLE.amount += ((idle ? 1 : 0) - IDLE.amount) * (idle ? .25 : .25);
-    const phase = (now - IDLE.t0) / IDLE.period;
-    IDLE.offset = IDLE.range * IDLE.amount * (1 - Math.cos(2 * Math.PI * phase)) / 2;
+    IDLE.elapsed = now - IDLE.t0;
   }
 
   let smoothY = scrollY;
   function renderBg() {
     smoothY += (scrollY - smoothY) * .12;
     updateIdle(performance.now());
+    updateReading();
     const y = smoothY, fade = innerHeight * .45;
     manage(y);
     const alphas = segs.map((sg, i) => i === 0 ? 1 : clamp((y - sg.s) / fade));
@@ -830,6 +965,7 @@ a{color:inherit}
     o.disconnect();
     setTimeout(() => call.classList.add('play'), 350);
     setTimeout(() => call.classList.add('marked'), 350 + 5 * 650 + 200);
+    setTimeout(() => call.classList.add('ended'), 350 + 5 * 650 + 2600);
   }), { threshold: .35 }).observe(call);
 
   const ai = document.getElementById('ai');
@@ -1060,7 +1196,7 @@ a{color:inherit}
       const k = Math.min(1, (now - t0) / dur);
       scrollTo(0, start + dist * ease(k));
       if (k < 1) requestAnimationFrame(step);
-      else { removeEventListener('wheel', stop); removeEventListener('touchstart', stop); removeEventListener('keydown', stop); try { history.replaceState(null, '', '#' + el.id); } catch (e) {} }
+      else { removeEventListener('wheel', stop); removeEventListener('touchstart', stop); removeEventListener('keydown', stop); }
     };
     requestAnimationFrame(step);
   }
