@@ -1,0 +1,1320 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>IT Solutions · RPA + IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0a; --fg:#ffffff; --gold:#F2B35E;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --px:20px;
+  color-scheme:dark; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --bg:#0a0a0a } }
+:root[data-theme="dark"]{ --bg:#0a0a0a }
+@media (min-width:640px){ :root{ --px:32px } }
+@media (min-width:768px){ :root{ --px:48px } }
+*,*::before,*::after{box-sizing:inherit}
+html{background:var(--bg); scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0; background:var(--bg); color:var(--fg); font-family:var(--sans); -webkit-font-smoothing:antialiased; overflow-x:hidden}
+::selection{background:rgba(255,255,255,.2)}
+a{color:inherit}
+
+/* ---------- scroll background ---------- */
+.bgfx{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; background:var(--bg)}
+.bgfx canvas{position:absolute; inset:0; width:100%; height:100%; opacity:0; transition:opacity .5s ease, filter .9s ease, transform .9s ease}
+/* while a section is being read, the background steps back: soft blur + a little darker */
+.bgfx.reading canvas{filter:blur(8px) brightness(.8); transform:scale(1.05)}
+.bgfx.on canvas{opacity:1}
+.bgfx video{position:absolute; width:2px; height:2px; opacity:0; left:0; top:0}
+.bgfx .shade{position:absolute; inset:0; background:rgba(8,10,14,1); opacity:0; z-index:1}
+.bgfx::after{content:""; position:absolute; inset:0; z-index:2;
+  background:
+    radial-gradient(60% 55% at 0% 100%, rgba(8,10,14,.55), rgba(8,10,14,0) 70%),
+    radial-gradient(45% 40% at 100% 0%, rgba(8,10,14,.35), rgba(8,10,14,0) 70%),
+    linear-gradient(to bottom, rgba(8,10,14,.45), rgba(8,10,14,0) 24%, rgba(8,10,14,0) 55%, rgba(8,10,14,.5))}
+
+.page{position:relative; z-index:10}
+
+/* ---------- tokens ---------- */
+.mono{font-family:var(--sans); text-transform:uppercase; letter-spacing:.15em}
+.shadow-md{text-shadow:0 1px 2px rgba(0,0,0,.45), 0 2px 12px rgba(0,0,0,.35)}
+.shadow-lg{text-shadow:0 2px 4px rgba(0,0,0,.35), 0 8px 30px rgba(0,0,0,.45)}
+.glass{background:rgba(16,20,28,.38); border:1px solid rgba(255,255,255,.16); -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2)}
+.badge{display:inline-block; border:0; border-left:2px solid #fff; padding:6px 12px; font-size:11px; font-weight:500}
+.btn{display:inline-flex; align-items:center; gap:6px; border-radius:999px; text-decoration:none; font-weight:500; transition:background .3s ease, color .3s ease}
+.btn svg{width:14px; height:14px}
+.btn-primary{background:#fff; color:#000}
+.btn-primary:hover{background:rgba(255,255,255,.85)}
+.btn:focus-visible, .step:focus-visible{outline:2px solid #fff; outline-offset:3px}
+
+/* reveal */
+.rv{opacity:0; transform:translateY(2rem); transition:opacity .7s ease-out, transform .7s ease-out; transition-delay:var(--d,0ms); will-change:transform}
+.rv.in{opacity:1; transform:none}
+
+/* ---------- nav ---------- */
+.nav{position:fixed; top:0; left:0; right:0; z-index:50; border-bottom:1px solid rgba(255,255,255,.15); background:linear-gradient(rgba(8,10,14,.45), rgba(8,10,14,.18)); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+  padding-top:env(safe-area-inset-top,0px)}
+.nav-in{display:flex; align-items:center; justify-content:space-between; gap:16px; height:64px; padding-inline:var(--px)}
+.logo{display:flex; align-items:center; gap:10px; font-size:18px; font-weight:500; letter-spacing:-.01em; text-decoration:none}
+.logo svg{width:24px; height:24px}
+.nav-r{display:flex; align-items:center; gap:10px}
+.snd{display:inline-flex; align-items:center; gap:8px; appearance:none; cursor:pointer; padding:7px 12px; border-radius:6px;
+  border:1px solid rgba(255,255,255,.2); background:rgba(16,20,28,.3); color:#fff; font:500 12px/1 var(--sans); transition:background .25s ease, border-color .25s ease}
+.snd:hover{background:rgba(255,255,255,.14)}
+.snd:focus-visible{outline:2px solid #fff; outline-offset:2px}
+.snd svg{width:16px; height:16px}
+.snd .ic-on, .snd[aria-pressed="true"] .ic-off{display:none}
+.snd[aria-pressed="true"] .ic-on{display:block}
+.snd[aria-pressed="true"]{border-color:rgba(143,227,184,.6)}
+.snd-bars{display:none; align-items:flex-end; gap:2px; height:12px}
+.snd-bars i{width:2px; height:30%; background:#8FE3B8; border-radius:2px}
+.snd.speaking .snd-bars{display:inline-flex}
+.snd.speaking .snd-bars i{animation:wave .9s ease-in-out infinite}
+.snd.speaking .snd-bars i:nth-child(2){animation-delay:.2s} .snd.speaking .snd-bars i:nth-child(3){animation-delay:.4s}
+@media (max-width:640px){ .snd-label{display:none} .snd{padding:7px 9px} }
+.tag{font-size:11px; font-weight:500; color:#fff; background:rgba(16,20,28,.3); padding:8px 12px; border:1px solid rgba(255,255,255,.2); border-radius:6px}
+@media (min-width:640px){ .logo{font-size:20px} .tag{font-size:12px; padding:8px 16px} }
+
+/* ---------- sections ---------- */
+.sec{min-height:100vh; min-height:100svh; display:flex; flex-direction:column; justify-content:space-between;
+  padding:96px var(--px) 48px}
+@media (min-width:640px){ .sec{padding-top:112px} }
+@media (min-width:768px){ .sec{padding-bottom:64px} }
+.row-top{display:flex; flex-direction:column; align-items:flex-start; gap:32px}
+@media (min-width:640px){ .row-top{flex-direction:row; justify-content:space-between; align-items:flex-start} }
+
+.services{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; font-size:12px; color:rgba(255,255,255,.9)}
+.intro{margin:0; max-width:24rem; font-size:18px; line-height:1.6}
+@media (min-width:640px){ .intro{text-align:right; font-size:20px} }
+
+.row-bottom{display:flex; flex-direction:column; gap:32px; margin-top:48px}
+@media (min-width:768px){ .row-bottom{flex-direction:row; align-items:flex-end; justify-content:space-between} }
+
+.h1{margin:20px 0 0; font-weight:400; font-size:48px; line-height:1.05; letter-spacing:-.025em}
+@media (min-width:640px){ .h1{font-size:60px} }
+@media (min-width:1024px){ .h1{font-size:72px} }
+
+/* case card (bottom-right of hero) */
+.case{display:flex; align-items:center; gap:16px; border-radius:12px; padding:12px; max-width:25rem}
+.case .thumb{flex:none; width:80px; height:96px; border-radius:8px; background:rgba(8,10,14,.45); overflow:hidden}
+.case .thumb svg{width:100%; height:100%; display:block}
+.case-body{display:flex; flex-direction:column; gap:6px; padding-right:8px}
+.case-title{margin:0; font-size:16px; font-weight:500; line-height:1.3}
+.case-meta{margin:0; font-size:10px; color:rgba(255,255,255,.7)}
+.case .btn{align-self:flex-start; margin-top:6px; padding:9px 16px; font-size:12px}
+
+/* section two */
+.intro2{margin:0; max-width:24rem; font-size:18px; line-height:1.6}
+@media (min-width:640px){ .intro2{text-align:right; font-size:20px} }
+.bottom2{flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:48px; margin-top:48px}
+@media (min-width:768px){ .bottom2{flex-direction:row; align-items:flex-end; justify-content:space-between; gap:64px} }
+.col{max-width:36rem}
+#recorrido{padding-top:88px}
+#solicitud, #analiza, #rpa, #excepcion, #resultado, #genesys, #cierre{padding-top:88px}
+@media (min-width:768px){ #solicitud, #analiza, #rpa, #excepcion, #resultado, #genesys, #cierre{padding-top:96px} }
+#recorrido .bottom2{margin-top:0}
+@media (min-width:768px) and (max-height:760px){ #genesys .h1{font-size:52px} #genesys .ctas{margin-top:18px} .node p{font-size:12.5px} .tech{margin-top:3px} #cierre .h1{font-size:52px} #cierre .ctas{margin-top:18px} .stage{padding:6px 0} #resultado .h1{font-size:52px} #resultado .ctas{margin-top:18px} .kpi b{font-size:22px} #excepcion .h1{font-size:52px} #excepcion .ctas{margin-top:18px} .rev-body{gap:8px} #rpa .h1{font-size:52px} #rpa .ctas{margin-top:18px} #analiza .h1{font-size:52px} #analiza .ctas{margin-top:18px} #solicitud .h1{font-size:52px} #solicitud .asks{margin-top:14px; gap:6px} #solicitud .ctas{margin-top:18px} #recorrido .h1{font-size:56px} #recorrido .lead2{margin:14px 0 18px} #recorrido .body2{margin-top:16px} #recorrido .ctas{margin-top:20px} }
+@media (min-width:768px){
+  #recorrido{padding-top:96px}
+  #recorrido .bottom2{align-items:stretch; justify-content:space-between}
+  #recorrido .col{align-self:flex-end}
+  #recorrido .panel{align-self:flex-start; max-width:32rem}
+}
+.lead2{margin:20px 0 28px; max-width:30rem; font-size:17px; line-height:1.55; color:#fff}
+@media (min-width:640px){ .lead2{font-size:18px} }
+.body2{margin:24px 0 0; max-width:28rem; font-size:14px; line-height:1.6; color:rgba(255,255,255,.88)}
+@media (min-width:640px){ .body2{font-size:16px} }
+.ctas{display:flex; flex-wrap:wrap; gap:12px; margin-top:32px}
+.ctas .btn{padding:11px 20px; font-size:13px}
+@media (min-width:640px){ .ctas .btn{font-size:14px} }
+
+.panel{width:100%; max-width:28rem; border-radius:16px; border:1px solid rgba(255,255,255,.15);
+  background:rgba(16,20,28,.42); -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2); padding:0 20px; margin:0; list-style:none}
+@media (min-width:640px){ .panel{padding:0 24px} }
+.step{display:flex; gap:20px; padding:14px 0; border-bottom:1px solid rgba(255,255,255,.15)}
+.step:last-child{border-bottom:0}
+.idx{font-size:11px; letter-spacing:.15em; color:rgba(255,255,255,.55); padding-top:4px; font-variant-numeric:tabular-nums}
+.step h3{margin:0; font-size:16px; font-weight:500}
+@media (min-width:640px){ .step h3{font-size:18px} }
+.step p{margin:4px 0 0; font-size:13.5px; line-height:1.5; color:rgba(255,255,255,.78)}
+.step[data-exc] .idx{color:var(--gold)}
+
+.spacer{height:80vh}
+.spacer-long{height:150vh}
+.spacer-hero{height:200vh}
+
+/* ---------- sección: llega la solicitud ---------- */
+.split{flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:40px}
+@media (min-width:768px){
+  .split{flex-direction:row; justify-content:space-between; align-items:stretch; gap:64px}
+  .split .col{align-self:flex-end}
+  .split .call, .split > article{align-self:flex-start}
+}
+.asks{list-style:none; margin:22px 0 0; padding:0; display:grid; gap:10px}
+.asks li{display:flex; align-items:center; gap:12px; font-size:15px; color:#fff}
+.num{flex:none; display:inline-grid; place-items:center; width:22px; height:22px; border-radius:50%;
+  background:var(--gold); color:#141414; font-size:12px; font-weight:600; font-variant-numeric:tabular-nums}
+.call{width:100%; max-width:32rem; border-radius:16px; padding:16px 20px 12px; background:rgba(12,15,22,.58)}
+.call-head{display:flex; align-items:center; gap:10px; font-size:11px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,.15)}
+.call-head .dim{margin-left:auto; color:rgba(255,255,255,.62); font-variant-numeric:tabular-nums}
+.call-head .phone{width:14px; height:14px; color:#8FE3B8}
+.wave{display:inline-flex; align-items:center; gap:2px; height:14px; margin-left:4px}
+.wave i{width:2px; height:30%; border-radius:2px; background:#8FE3B8; opacity:.85}
+.call.play .wave i{animation:wave 1.1s ease-in-out infinite}
+.wave i:nth-child(2){animation-delay:.15s} .wave i:nth-child(3){animation-delay:.3s} .wave i:nth-child(4){animation-delay:.45s}
+.wave i:nth-child(5){animation-delay:.6s} .wave i:nth-child(6){animation-delay:.75s} .wave i:nth-child(7){animation-delay:.9s}
+@keyframes wave{0%,100%{height:25%} 50%{height:100%}}
+.call.ended .wave i{animation:none; height:25%; opacity:.4}
+.call-sub{margin:10px 0 0; font-size:10px; color:rgba(255,255,255,.55)}
+.live{width:8px; height:8px; border-radius:50%; background:#FF6B5E; animation:live 1.6s infinite}
+@keyframes live{0%{box-shadow:0 0 0 0 rgba(255,107,94,.55)} 70%{box-shadow:0 0 0 8px rgba(255,107,94,0)} 100%{box-shadow:0 0 0 0 rgba(255,107,94,0)}}
+.lines{list-style:none; margin:0; padding:4px 0 0}
+.lines li{display:grid; grid-template-columns:62px 1fr; gap:12px; padding:9px 0;
+  opacity:0; transform:translateY(8px); transition:opacity .5s ease, transform .5s ease; transition-delay:calc(var(--i) * 650ms)}
+.call.play .lines li{opacity:1; transform:none}
+.call.sync .lines li{transition-delay:0s}
+.call.sync .lines li.shown{opacity:1; transform:none}
+.call.sync mark, .call.sync mark .num{transition-delay:.45s}
+.call.sync li.shown mark{background-size:100% 100%}
+.call.sync li.shown mark .num{transform:scale(1)}
+.call.talking .wave i{animation:wave 1.1s ease-in-out infinite}
+.who{font-size:10px; color:rgba(255,255,255,.55); padding-top:4px}
+.ln-c .who{color:#fff}
+.lines p{margin:0; font-size:14.5px; line-height:1.5; color:rgba(255,255,255,.9)}
+.call mark{color:#fff; border-radius:3px; padding:0 2px;
+  background:linear-gradient(rgba(242,179,94,.38),rgba(242,179,94,.38)) no-repeat 0 100% / 0% 100%;
+  transition:background-size .7s ease; transition-delay:var(--md,0ms)}
+.call mark .num{width:16px; height:16px; font-size:10px; margin-left:5px; vertical-align:1px; transform:scale(0);
+  transition:transform .3s ease; transition-delay:calc(var(--md,0ms) + 500ms)}
+.call.marked mark{background-size:100% 100%}
+.call.marked mark .num{transform:scale(1)}
+.call-foot{margin-top:6px; padding-top:10px; border-top:1px solid rgba(255,255,255,.12); font-size:10px; color:rgba(255,255,255,.5)}
+
+/* ---------- sección: la IA analiza ---------- */
+.ai{width:100%; max-width:32rem; border-radius:16px; background:rgba(12,15,22,.6); overflow:hidden}
+.ai-tabs{display:flex; gap:4px; padding:6px; border-bottom:1px solid rgba(255,255,255,.14)}
+.ai-tab{flex:1; appearance:none; border:0; border-radius:10px; padding:9px 10px; background:transparent; color:rgba(255,255,255,.65);
+  font:500 12px/1.2 var(--sans); cursor:pointer; transition:background .25s ease, color .25s ease}
+.ai-tab:hover{color:#fff}
+.ai-tab[aria-selected="true"]{background:rgba(255,255,255,.12); color:#fff}
+.ai-tab:focus-visible{outline:2px solid #fff; outline-offset:2px}
+.ai-pane{padding:14px 20px 16px}
+.ai-pane[hidden]{display:none}
+.ai-h{margin:0 0 8px; font-size:10px; color:rgba(255,255,255,.55)}
+.intents{list-style:none; margin:0 0 14px; padding:0; display:grid; gap:9px}
+.intent{display:grid; grid-template-columns:22px 1fr 44px; align-items:center; gap:10px; font-size:14px}
+.intent .num{width:20px; height:20px; font-size:11px}
+.bar{grid-column:2 / 4; height:4px; border-radius:4px; background:rgba(255,255,255,.12); overflow:hidden; margin-top:-4px}
+.bar i{display:block; height:100%; width:0; border-radius:4px; background:linear-gradient(90deg, rgba(242,179,94,.7), var(--gold));
+  transition:width 1.2s cubic-bezier(.2,.8,.2,1); transition-delay:var(--bd,0ms)}
+.conf{justify-self:end; font-size:12px; font-variant-numeric:tabular-nums; color:rgba(255,255,255,.85)}
+.ai.go .bar i{width:var(--w)}
+.facts{margin:0 0 14px; display:grid; grid-template-columns:auto 1fr; gap:6px 14px; font-size:13px}
+.facts dt{color:rgba(255,255,255,.6)} .facts dd{margin:0; color:#fff}
+.facts dt, .facts dd{opacity:0; transition:opacity .5s ease; transition-delay:var(--fd,0ms)}
+.ai.go .facts dt, .ai.go .facts dd{opacity:1}
+.flag{display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:10px;
+  background:rgba(242,179,94,.12); border:1px solid rgba(242,179,94,.45); font-size:13px; line-height:1.45;
+  opacity:0; transform:translateY(6px); transition:opacity .5s ease 1.6s, transform .5s ease 1.6s}
+.ai.go .flag{opacity:1; transform:none}
+.flag b{color:var(--gold); font-weight:600}
+.flag svg{flex:none; width:16px; height:16px; margin-top:2px; color:var(--gold)}
+.code{margin:0; padding:12px 14px; border-radius:10px; background:rgba(0,0,0,.35); overflow:auto; max-height:21rem;
+  font:12px/1.55 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; color:rgba(255,255,255,.85)}
+.code .k{color:rgba(255,255,255,.6)} .code .v{color:#FFD9A0} .code .b{color:#9FE3C9}
+.pane-note{margin:10px 0 0; font-size:12px; color:rgba(255,255,255,.6)}
+@media (prefers-reduced-motion:reduce){ .bar i, .facts dt, .facts dd, .flag{transition:none} }
+
+/* ---------- sección: el RPA ejecuta (centro de control) ---------- */
+#rpa .col{max-width:33rem}
+.cc{width:100%; max-width:38rem; border-radius:16px; background:rgba(12,15,22,.62); overflow:hidden}
+.cc-head{display:flex; align-items:center; gap:10px; padding:11px 14px 11px 16px; border-bottom:1px solid rgba(255,255,255,.14); font-size:11px}
+.cc-head .dim{color:rgba(255,255,255,.6)}
+.cc-head .timer{margin-left:auto; font-variant-numeric:tabular-nums; color:#fff}
+.cc-replay{appearance:none; border:1px solid rgba(255,255,255,.22); background:rgba(255,255,255,.06); color:#fff; border-radius:999px;
+  padding:5px 11px; font:500 11px/1 var(--sans); cursor:pointer; transition:background .25s ease}
+.cc-replay:hover{background:rgba(255,255,255,.16)}
+.cc-replay:focus-visible{outline:2px solid #fff; outline-offset:2px}
+.bots{list-style:none; margin:0; padding:12px; display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.bot{padding:10px 12px; border-radius:12px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+  transition:border-color .3s ease, background .3s ease, transform .3s ease}
+.bot:hover{background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.26); transform:translateY(-2px)}
+.bot-top{display:flex; align-items:center; justify-content:space-between; gap:8px}
+.bot-id{font-size:10px; color:rgba(255,255,255,.6)}
+.chip{display:inline-flex; align-items:center; gap:6px; font-size:10px; padding:3px 8px; border-radius:999px; white-space:nowrap;
+  background:rgba(255,255,255,.08); color:rgba(255,255,255,.65)}
+.chip::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.8}
+.bot[data-state="run"] .chip{background:rgba(255,255,255,.15); color:#fff}
+.bot[data-state="run"] .chip::before{animation:blink 1s infinite}
+.bot[data-state="ok"] .chip{background:rgba(143,227,184,.16); color:#8FE3B8}
+.bot[data-state="exc"] .chip{background:rgba(242,179,94,.18); color:var(--gold)}
+.bot[data-state="exc"]{border-color:rgba(242,179,94,.6); background:rgba(242,179,94,.08)}
+@keyframes blink{50%{opacity:.2}}
+.bot h3{margin:7px 0 2px; font-size:14px; font-weight:500}
+.bot .res{margin:0; font-size:12px; line-height:1.35; color:rgba(255,255,255,.65); min-height:2.7em}
+.bot[data-state="exc"] .res{color:#FFD9A0}
+.prog{margin-top:7px; height:3px; border-radius:3px; background:rgba(255,255,255,.1); overflow:hidden}
+.prog i{display:block; height:100%; width:0; border-radius:3px; background:#fff}
+.bot[data-state="ok"] .prog i{background:#8FE3B8}
+.bot[data-state="exc"] .prog i{background:var(--gold)}
+.log{list-style:none; margin:0 12px; padding:8px 10px; border-radius:10px; background:rgba(0,0,0,.32); height:6.4em; overflow:hidden;
+  display:flex; flex-direction:column; justify-content:flex-end; font:11px/1.6 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace}
+.log li{flex:none; color:rgba(255,255,255,.78); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:opacity .25s ease}
+.log li .t{color:rgba(255,255,255,.42)} .log li .r{color:#fff}
+.log li.warn, .log li.warn .r{color:var(--gold)}
+.cc[data-focus] .log li{display:none}
+.cc[data-focus="1"] .log li[data-r="1"], .cc[data-focus="2"] .log li[data-r="2"], .cc[data-focus="3"] .log li[data-r="3"],
+.cc[data-focus="4"] .log li[data-r="4"], .cc[data-focus="5"] .log li[data-r="5"], .cc[data-focus="6"] .log li[data-r="6"]{display:block}
+.cc-foot{display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; padding:10px 16px 12px; font-size:12px; color:rgba(255,255,255,.78)}
+.cc-foot b{color:#fff; font-weight:600}
+.cc-foot .exc{color:var(--gold)}
+@media (max-width:520px){ .bots{grid-template-columns:1fr} }
+@media (prefers-reduced-motion:reduce){ .bot[data-state="run"] .chip::before{animation:none} }
+
+/* ---------- sección: revisión humana ---------- */
+#excepcion .col{max-width:33rem}
+.rev{width:100%; max-width:34rem; border-radius:16px; background:rgba(12,15,22,.64); overflow:hidden}
+.rev-head{display:flex; align-items:center; gap:10px; padding:11px 14px 11px 16px; border-bottom:1px solid rgba(255,255,255,.14); font-size:11px}
+.rev-head .dim{color:rgba(255,255,255,.6)}
+.rev-state{margin-left:auto}
+.rev .chip{font-size:10px}
+.rev[data-state="pending"] .rev-state{background:rgba(242,179,94,.18); color:var(--gold)}
+.rev[data-state="valid"] .rev-state, .rev[data-state="done"] .rev-state{background:rgba(143,227,184,.16); color:#8FE3B8}
+.rev[data-state="pending"] .rev-state::before{animation:blink 1.2s infinite}
+.rev-body{padding:12px 16px 14px; display:grid; gap:10px}
+.ev{display:grid; grid-template-columns:7.5rem 1fr; gap:4px 14px; font-size:13px; line-height:1.45}
+.ev dt{color:rgba(255,255,255,.58)} .ev dd{margin:0; color:#fff}
+.ev .inc{color:var(--gold)}
+.quote{margin:0; font-size:13px; color:rgba(255,255,255,.85); font-style:italic}
+.sugg{display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:10px; font-size:13px; line-height:1.45;
+  background:rgba(242,179,94,.10); border:1px solid rgba(242,179,94,.4)}
+.sugg b{color:var(--gold); font-weight:600}
+.sugg svg{flex:none; width:16px; height:16px; margin-top:2px; color:var(--gold)}
+.field{display:grid; gap:6px}
+.field label{font-size:10px; color:rgba(255,255,255,.6)}
+.field input{width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.22); background:rgba(0,0,0,.3);
+  color:#fff; font:500 14px/1.2 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; letter-spacing:.04em; transition:border-color .25s ease, box-shadow .25s ease}
+.field input:focus{outline:none; border-color:#fff; box-shadow:0 0 0 3px rgba(255,255,255,.15)}
+.rev[data-state="valid"] .field input, .rev[data-state="done"] .field input{border-color:rgba(143,227,184,.7)}
+.field .hint{font-size:12px; color:rgba(255,255,255,.6); min-height:1.2em}
+.field .hint.bad{color:#FF9C8F}
+.acts{display:flex; flex-wrap:wrap; gap:8px}
+.act{appearance:none; border-radius:999px; padding:9px 14px; font:500 12.5px/1 var(--sans); cursor:pointer;
+  border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.08); color:#fff; transition:background .25s ease, opacity .25s ease}
+.act:hover{background:rgba(255,255,255,.18)}
+.act:focus-visible{outline:2px solid #fff; outline-offset:2px}
+.act.primary{background:#fff; color:#000; border-color:#fff}
+.act.primary:hover{background:rgba(255,255,255,.85)}
+.act:disabled{opacity:.4; cursor:not-allowed; background:rgba(255,255,255,.08); color:#fff; border-color:rgba(255,255,255,.25)}
+.rev-log{list-style:none; margin:0; padding:0; display:grid; gap:4px; font:11.5px/1.5 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace}
+.rev-log:empty{display:none}
+.rev-log li{color:rgba(255,255,255,.82); opacity:0; transform:translateY(4px); transition:opacity .4s ease, transform .4s ease}
+.rev-log li.in{opacity:1; transform:none}
+.rev-log .t{color:rgba(255,255,255,.45)} .rev-log .ok{color:#8FE3B8}
+.rev-foot{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 16px 12px; border-top:1px solid rgba(255,255,255,.12); font-size:12px; color:rgba(255,255,255,.7)}
+.rev-foot button{appearance:none; border:0; background:none; color:rgba(255,255,255,.75); font:500 12px var(--sans); cursor:pointer; text-decoration:underline; text-underline-offset:3px}
+.rev-foot button:hover{color:#fff}
+@media (max-width:520px){ .ev{grid-template-columns:1fr} }
+@media (prefers-reduced-motion:reduce){ .rev-log li{transition:none} .rev[data-state="pending"] .rev-state::before{animation:none} }
+
+/* ---------- sección: resultado y trazabilidad ---------- */
+#resultado .col{max-width:33rem}
+.outcome{width:100%; max-width:34rem; border-radius:16px; background:rgba(12,15,22,.64); overflow:hidden}
+.outcome .ai-pane{padding:14px 18px 16px}
+.cmp{display:grid; gap:10px; margin-bottom:14px}
+.cmp-row{display:grid; grid-template-columns:8.5rem 1fr auto; align-items:center; gap:12px; font-size:13px}
+.cmp-row .lbl{color:rgba(255,255,255,.7)}
+.cmp-row .val{font-variant-numeric:tabular-nums; color:#fff; font-weight:500; min-width:5.5rem; text-align:right}
+.cmp-bar{height:8px; border-radius:8px; background:rgba(255,255,255,.08); overflow:hidden}
+.cmp-bar i{display:block; height:100%; width:0; border-radius:8px; transition:width 1.4s cubic-bezier(.2,.8,.2,1); transition-delay:var(--bd,0ms)}
+.cmp-row.manual .cmp-bar i{background:rgba(255,255,255,.45)}
+.cmp-row.auto .cmp-bar i{background:#8FE3B8}
+.outcome.go .cmp-bar i{width:var(--w)}
+.speed{margin:2px 0 0; font-size:12.5px; color:#8FE3B8}
+.kpis{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.kpi{padding:10px 12px; border-radius:12px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); transition:background .3s ease, border-color .3s ease}
+.kpi:hover{background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.24)}
+.kpi b{display:block; font-size:26px; font-weight:500; line-height:1.1; letter-spacing:-.01em; font-variant-numeric:tabular-nums}
+.kpi span{display:block; margin-top:3px; font-size:12px; line-height:1.35; color:rgba(255,255,255,.68)}
+.kpi.human b{color:var(--gold)}
+.trail{list-style:none; margin:0; padding:0 0 0 2px; position:relative}
+.trail::before{content:""; position:absolute; left:6px; top:8px; bottom:8px; width:1px; background:rgba(255,255,255,.18)}
+.trail li{position:relative; display:grid; grid-template-columns:18px 64px 1fr; gap:8px; align-items:baseline; padding:6px 0; font-size:13px; line-height:1.4}
+.trail .dot{width:11px; height:11px; border-radius:50%; background:#fff; margin-top:4px; box-shadow:0 0 0 3px rgba(12,15,22,.9)}
+.trail .ia .dot{background:var(--gold)} .trail .hum .dot{background:transparent; border:2px solid var(--gold)}
+.trail .ok .dot{background:#8FE3B8} .trail .exc .dot{background:#FF9C8F}
+.trail .t{font:11.5px/1.4 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; color:rgba(255,255,255,.5)}
+.trail .who{display:block; font-size:10px; color:rgba(255,255,255,.55); margin-bottom:1px}
+@media (max-width:520px){ .cmp-row{grid-template-columns:1fr auto} .cmp-bar{grid-column:1 / -1} }
+@media (prefers-reduced-motion:reduce){ .cmp-bar i{transition:none} }
+
+/* ---------- cierre: RPA evoluciona ---------- */
+#cierre .col{max-width:33rem}
+.evo{width:100%; max-width:34rem; border-radius:16px; background:rgba(12,15,22,.64); padding:16px 18px 14px}
+.stages{list-style:none; margin:0 0 14px; padding:0; position:relative}
+.stages::before{content:""; position:absolute; left:15px; top:18px; bottom:18px; width:1px; background:linear-gradient(rgba(255,255,255,.35), var(--gold), rgba(255,255,255,.2))}
+.stage{position:relative; display:grid; grid-template-columns:32px 1fr; gap:12px; padding:9px 0}
+.stage .n{position:relative; z-index:1; display:grid; place-items:center; width:31px; height:31px; border-radius:50%;
+  background:rgba(12,15,22,.95); border:1px solid rgba(255,255,255,.3); font-size:11px; font-variant-numeric:tabular-nums}
+.stage.is-now .n{border-color:var(--gold); color:var(--gold); box-shadow:0 0 18px rgba(242,179,94,.35)}
+.stage.is-next .n{border-style:dashed}
+.stage h3{margin:0; display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:16px; font-weight:500}
+.stage .pill{font-size:10px; padding:3px 8px; border-radius:999px; background:rgba(255,255,255,.08); color:rgba(255,255,255,.7)}
+.stage.is-now .pill{background:rgba(242,179,94,.18); color:var(--gold)}
+.stage p{margin:4px 0 0; font-size:13.5px; line-height:1.5; color:rgba(255,255,255,.75)}
+.how{border-top:1px solid rgba(255,255,255,.14); padding-top:12px}
+.how ul{list-style:none; margin:0; padding:0; display:grid; gap:8px}
+.how li{display:grid; grid-template-columns:18px 1fr; gap:10px; font-size:13.5px; line-height:1.45; color:#fff}
+.how svg{width:16px; height:16px; margin-top:2px; color:#8FE3B8}
+.site-foot{margin-top:40px; padding-top:16px; border-top:1px solid rgba(255,255,255,.15); display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px 24px; font-size:12px; color:rgba(255,255,255,.7)}
+.spacer-short{height:40vh}
+
+/* ---------- sección: integración con Genesys ---------- */
+#genesys .col{max-width:33rem}
+.arch{width:100%; max-width:34rem; border-radius:16px; background:rgba(12,15,22,.64); padding:16px 18px 12px}
+.flowv{list-style:none; margin:0; padding:0; position:relative}
+.flowv::before{content:""; position:absolute; left:13px; top:16px; bottom:16px; width:2px; border-radius:2px;
+  background:linear-gradient(#8FE3B8, var(--gold) 30%, rgba(255,255,255,.5) 60%, #8FE3B8)}
+.flowv::after{content:""; position:absolute; left:10px; top:12px; width:8px; height:8px; border-radius:50%; background:#fff;
+  box-shadow:0 0 10px #fff; animation:packet 4.5s linear infinite}
+@keyframes packet{0%{top:12px; opacity:0} 8%{opacity:1} 92%{opacity:1} 100%{top:calc(100% - 20px); opacity:0}}
+.node{position:relative; display:grid; grid-template-columns:28px 1fr; gap:12px; padding:7px 0; border-radius:10px; transition:background .25s ease}
+.node:hover{background:rgba(255,255,255,.05)}
+.nb{position:relative; z-index:1; display:grid; place-items:center; width:28px; height:28px; border-radius:50%;
+  background:rgba(12,15,22,.95); border:1px solid rgba(255,255,255,.35); font-size:11px}
+.node.g .nb{border-color:#8FE3B8; color:#8FE3B8}
+.node.ia .nb{border-color:var(--gold); color:var(--gold)}
+.node h3{margin:3px 0 0; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:500}
+.node .pill{font-size:10px; padding:3px 8px; border-radius:999px; background:rgba(143,227,184,.16); color:#8FE3B8}
+.node p{margin:3px 0 0; font-size:13px; line-height:1.45; color:rgba(255,255,255,.75)}
+.tech{display:inline-block; margin-top:5px; font-size:10px; color:rgba(255,255,255,.5)}
+.arch-note{margin:8px 0 0; padding-top:8px; border-top:1px solid rgba(255,255,255,.12); font-size:11.5px; color:rgba(255,255,255,.55)}
+@media (prefers-reduced-motion:reduce){ .flowv::after{animation:none; opacity:0} }
+
+.toast{position:fixed; left:16px; bottom:16px; z-index:60; max-width:22rem; padding:10px 14px; border-radius:10px;
+  background:rgba(12,15,22,.85); border:1px solid rgba(255,255,255,.18); font-size:13px; line-height:1.4; display:none}
+.toast.show{display:block}
+@media (prefers-reduced-motion:reduce){ .lines li, .call mark, .call mark .num{transition:none} .live, .call.play .wave i{animation:none} }
+.next{min-height:100vh; min-height:100svh; display:grid; place-items:center; padding:80px var(--px); text-align:center}
+.next p{margin:0; font-size:14px; color:rgba(255,255,255,.85)}
+
+@media (prefers-reduced-motion:reduce){
+  .rv{transition:none; opacity:1; transform:none}
+  .bgfx canvas{transition:none}
+}
+</style>
+</head>
+<body>
+
+<div class="bgfx" id="bgfx" aria-hidden="true">
+  <canvas id="stage"></canvas>
+  <div class="shade" id="shade"></div>
+</div>
+
+<div class="page">
+  <header class="nav">
+    <div class="nav-in">
+      <a class="logo rv" href="#top" style="--d:0ms">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 20.2 7.25v9.5L12 21.5 3.8 16.75v-9.5Z"/><path d="M12 8.2 15.3 10.1v3.8L12 15.8 8.7 13.9v-3.8Z" opacity=".55"/></svg>
+        IT Solutions
+      </a>
+      <div class="nav-r">
+        <button class="snd rv" id="snd" type="button" aria-pressed="false" style="--d:200ms">
+          <svg class="ic-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="m22 9-6 6M16 9l6 6"/></svg>
+          <svg class="ic-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
+          <span class="snd-label">Activar sonido</span>
+          <span class="snd-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+        <span class="tag mono rv" style="--d:300ms">RPA + IA</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ================= HERO ================= -->
+    <section class="sec" id="top" aria-labelledby="h1">
+      <div class="row-top">
+        <ul class="services mono shadow-md" aria-label="Qué hace el RPA">
+          <li class="rv" style="--d:150ms">/ Procesos críticos</li>
+          <li class="rv" style="--d:270ms">/ Ejecución repetible</li>
+          <li class="rv" style="--d:390ms">/ Trazabilidad completa</li>
+        </ul>
+      </div>
+
+      <div class="row-bottom">
+        <div>
+          <span class="badge glass mono rv" style="--d:150ms">Robotic Process Automation</span>
+          <h1 class="h1 shadow-lg rv" id="h1" style="--d:280ms">El RPA ejecuta.<br>La IA lo guía.</h1>
+        </div>
+
+        <div class="case glass rv" style="--d:420ms">
+          <div class="thumb" aria-hidden="true">
+            <svg viewBox="0 0 80 96" id="mini">
+              <g fill="none" stroke-linecap="round">
+                <path d="M40 10 V30" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/>
+                <path d="M40 30 V46" stroke="rgba(255,255,255,.55)" stroke-width="1.2"/>
+                <g stroke="rgba(255,255,255,.35)" stroke-width="1">
+                  <path d="M40 46 C40 56 22 56 22 66 C22 76 40 76 40 86"/>
+                  <path d="M40 46 C40 56 29 56 29 66 C29 76 40 76 40 86"/>
+                  <path d="M40 46 C40 56 51 56 51 66 C51 76 40 76 40 86"/>
+                  <path d="M40 46 C40 56 58 56 58 66 C58 76 40 76 40 86"/>
+                </g>
+                <path id="excp" d="M40 46 V86" stroke="rgba(242,179,94,.8)" stroke-width="1.1" stroke-dasharray="2 3"/>
+              </g>
+              <g fill="#fff">
+                <circle cx="40" cy="10" r="3"/><circle cx="40" cy="30" r="3.4" fill="#F2B35E"/>
+                <circle cx="40" cy="46" r="3.4"/><circle cx="40" cy="66" r="3.4" fill="none" stroke="#fff" stroke-width="1.2"/>
+                <circle cx="40" cy="86" r="3.6"/>
+              </g>
+              <circle id="pk" r="2.2" fill="#F2B35E" cx="40" cy="10"/>
+            </svg>
+          </div>
+          <div class="case-body">
+            <p class="case-title">Una solicitud crítica, resuelta de principio a fin</p>
+            <p class="case-meta mono">Caso simulado · 5 pasos</p>
+            <a class="btn btn-primary" href="#recorrido" data-scroll-ms="8500">Empezar el recorrido
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="spacer spacer-hero" aria-hidden="true"></div>
+
+    <!-- ================= INTRO DEL RECORRIDO ================= -->
+    <section class="sec" id="recorrido" aria-labelledby="h2">
+      <div class="bottom2">
+        <div class="col">
+          <span class="badge glass mono rv" style="--d:120ms">Caso simulado</span>
+          <p class="lead2 shadow-md rv" style="--d:200ms">Meridian CX es una empresa ficticia, creada para esta demostración. Sus clientes, sistemas, datos y métricas son simulados.</p>
+          <h2 class="h1 shadow-lg rv" id="h2" style="--d:280ms;margin-top:0">Tres urgencias,<br>una sola solicitud.</h2>
+          <p class="body2 shadow-md rv" style="--d:380ms">Un cliente necesita cambiar la dirección de su servicio, confirmar un pago que aparece pendiente y reprogramar una visita para hoy mismo. Vamos a seguir su solicitud desde que entra hasta que queda resuelta.</p>
+          <div class="ctas rv" style="--d:460ms">
+            <a class="btn btn-primary" href="#solicitud">Ver la solicitud
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <ol class="panel" aria-label="Lo que vas a ver">
+          <li class="step rv" style="--d:300ms"><span class="idx mono">01</span><div><h3>Llega la solicitud</h3><p>Una llamada de voz, por Genesys, con tres pedidos urgentes.</p></div></li>
+          <li class="step rv" style="--d:410ms"><span class="idx mono">02</span><div><h3>La IA analiza</h3><p>Entiende la intención, extrae los datos y mide su confianza.</p></div></li>
+          <li class="step rv" style="--d:520ms"><span class="idx mono">03</span><div><h3>El RPA ejecuta</h3><p>Seis robots trabajan en paralelo en CRM, pagos y agenda.</p></div></li>
+          <li class="step rv" style="--d:630ms" data-exc><span class="idx mono">04</span><div><h3>Revisión humana</h3><p>Un pago con referencia incompleta pasa a una persona.</p></div></li>
+          <li class="step rv" style="--d:740ms"><span class="idx mono">05</span><div><h3>Resultado</h3><p>Tiempos, sistemas coordinados y trazabilidad del caso.</p></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <div class="spacer" id="t1" aria-hidden="true"></div>
+
+    <section class="sec" id="solicitud" aria-labelledby="h3">
+      <div class="split">
+        <div class="col">
+          <span class="badge glass mono rv" style="--d:100ms">Paso 01 · La solicitud</span>
+          <h2 class="h1 shadow-lg rv" id="h3" style="--d:200ms">Todo empieza<br>con una llamada.</h2>
+          <p class="body2 shadow-md rv" style="--d:300ms">Laura Méndez, clienta de Meridian CX, se mudó ayer. Llama al centro de contacto y la llamada entra por Genesys Cloud. En la misma llamada pide resolver tres cosas a la vez.</p>
+          <ol class="asks shadow-md rv" style="--d:400ms" aria-label="Lo que pide la clienta">
+            <li><span class="num">1</span>Cambiar la dirección de su servicio</li>
+            <li><span class="num">2</span>Aclarar un pago que aparece pendiente</li>
+            <li><span class="num">3</span>Recibir hoy al técnico en su nueva casa</li>
+          </ol>
+          <div class="ctas rv" style="--d:480ms">
+            <a class="btn btn-primary" href="#analiza">Ver cómo la analiza la IA
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <article class="call glass rv" id="call" style="--d:250ms" aria-label="Transcripción simulada de la llamada">
+          <header class="call-head">
+            <svg class="phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg>
+            <span class="mono">Llamada de voz · Genesys Cloud</span>
+            <span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+            <span class="mono dim">09:12 · 02:14</span>
+          </header>
+          <p class="call-sub mono">Transcripción en tiempo real</p>
+          <ol class="lines">
+            <li class="ln-a" style="--i:0"><span class="who mono">Agente</span><p>Meridian CX, buenos días, le atiende Daniel. ¿En qué le puedo ayudar?</p></li>
+            <li class="ln-c" style="--i:1"><span class="who mono">Clienta</span><p>Hola. Me mudé ayer y necesito <mark style="--md:0ms">cambiar la dirección de mi servicio<span class="num">1</span></mark>.</p></li>
+            <li class="ln-c" style="--i:2"><span class="who mono">Clienta</span><p>Además, en la app <mark style="--md:700ms">el pago de septiembre sale como pendiente<span class="num">2</span></mark>, pero ya lo hice. Tengo el comprobante.</p></li>
+            <li class="ln-c" style="--i:3"><span class="who mono">Clienta</span><p>Y el técnico venía hoy a la dirección anterior. <mark style="--md:1400ms">¿Puede venir hoy mismo a la nueva?<span class="num">3</span></mark></p></li>
+            <li class="ln-a" style="--i:4"><span class="who mono">Agente</span><p>Claro. Deme un momento y lo reviso todo.</p></li>
+          </ol>
+          <footer class="call-foot mono">Conversación simulada</footer>
+        </article>
+      </div>
+    </section>
+
+    <div class="spacer spacer-long" id="t2" aria-hidden="true"></div>
+
+    <section class="sec" id="analiza" aria-labelledby="h4">
+      <div class="split">
+        <div class="col">
+          <span class="badge glass mono rv" style="--d:100ms">Paso 02 · La IA analiza</span>
+          <h2 class="h1 shadow-lg rv" id="h4" style="--d:200ms">La IA entiende<br>el caso en segundos.</h2>
+          <p class="body2 shadow-md rv" style="--d:300ms">Lee la transcripción de la llamada, separa las tres intenciones, extrae los datos que necesitan los robots y marca lo que no cuadra. No decide sola: prepara el trabajo para el RPA.</p>
+          <div class="ctas rv" style="--d:420ms">
+            <a class="btn btn-primary" href="#rpa">Ver a los robots en acción
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <article class="ai glass rv" id="ai" style="--d:250ms" aria-label="Resultado simulado del análisis de la IA">
+          <div class="ai-tabs" role="tablist">
+            <button class="ai-tab" role="tab" id="tab-a" aria-selected="true" aria-controls="pane-a">Análisis</button>
+            <button class="ai-tab" role="tab" id="tab-b" aria-selected="false" aria-controls="pane-b" tabindex="-1">Instrucción para el RPA</button>
+          </div>
+
+          <div class="ai-pane" id="pane-a" role="tabpanel" aria-labelledby="tab-a">
+            <p class="ai-h mono">Intenciones detectadas</p>
+            <ol class="intents">
+              <li class="intent"><span class="num">1</span><span>Cambio de dirección</span><span class="conf" data-to="96">0%</span><span class="bar"><i style="--w:96%; --bd:0ms"></i></span></li>
+              <li class="intent"><span class="num">2</span><span>Aclaración de pago</span><span class="conf" data-to="88">0%</span><span class="bar"><i style="--w:88%; --bd:200ms"></i></span></li>
+              <li class="intent"><span class="num">3</span><span>Visita para hoy</span><span class="conf" data-to="94">0%</span><span class="bar"><i style="--w:94%; --bd:400ms"></i></span></li>
+            </ol>
+            <p class="ai-h mono">Datos extraídos</p>
+            <dl class="facts">
+              <dt style="--fd:500ms">Clienta</dt><dd style="--fd:500ms">Laura Méndez · CL-48213</dd>
+              <dt style="--fd:700ms">Nueva dirección</dt><dd style="--fd:700ms">Calle Olivo 128, int. 4B</dd>
+              <dt style="--fd:900ms">Pago</dt><dd style="--fd:900ms">Septiembre · $849.00</dd>
+              <dt style="--fd:1100ms">Visita</dt><dd style="--fd:1100ms">Hoy, de 16:00 a 18:00</dd>
+            </dl>
+            <div class="flag" role="note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+              <span><b>Referencia de pago incompleta: TX-2291-···</b><br>La IA no completa el dato por su cuenta. Lo marca para que lo revise una persona.</span>
+            </div>
+          </div>
+
+          <div class="ai-pane" id="pane-b" role="tabpanel" aria-labelledby="tab-b" hidden>
+<pre class="code"><code>{
+  <span class="k">"caso"</span>: <span class="v">"MX-2026-0917"</span>,
+  <span class="k">"cliente_id"</span>: <span class="v">"CL-48213"</span>,
+  <span class="k">"tareas"</span>: [
+    { <span class="k">"robot"</span>: <span class="v">"CRM"</span>,     <span class="k">"accion"</span>: <span class="v">"consultar_cliente"</span> },
+    { <span class="k">"robot"</span>: <span class="v">"Pagos"</span>,   <span class="k">"accion"</span>: <span class="v">"validar_pago"</span> },
+    { <span class="k">"robot"</span>: <span class="v">"Domicilios"</span>, <span class="k">"accion"</span>: <span class="v">"actualizar_direccion"</span> },
+    { <span class="k">"robot"</span>: <span class="v">"Agenda"</span>,  <span class="k">"accion"</span>: <span class="v">"revisar_disponibilidad"</span> },
+    { <span class="k">"robot"</span>: <span class="v">"Agenda"</span>,  <span class="k">"accion"</span>: <span class="v">"reprogramar_visita"</span> },
+    { <span class="k">"robot"</span>: <span class="v">"Casos"</span>,   <span class="k">"accion"</span>: <span class="v">"actualizar_y_confirmar"</span> }
+  ],
+  <span class="k">"excepciones"</span>: [<span class="v">"referencia_pago_incompleta"</span>],
+  <span class="k">"revision_humana"</span>: <span class="b">true</span>,
+  <span class="k">"confianza_global"</span>: <span class="b">0.92</span>
+}</code></pre>
+            <p class="pane-note">Seis tareas, una por robot. Esto es lo que recibe el RPA.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <div class="spacer spacer-long" id="t3" aria-hidden="true"></div>
+
+    <section class="sec" id="rpa" aria-labelledby="h5">
+      <div class="split">
+        <div class="col">
+          <span class="badge glass mono rv" style="--d:100ms">Paso 03 · El RPA ejecuta</span>
+          <h2 class="h1 shadow-lg rv" id="h5" style="--d:200ms">Seis robots,<br>trabajando a la vez.</h2>
+          <p class="body2 shadow-md rv" style="--d:300ms">La instrucción de la IA se reparte en seis tareas. Cada robot entra a su sistema, hace los mismos pasos que haría una persona y deja registro de todo. Si algo no cuadra, se detiene y avisa.</p>
+          <div class="ctas rv" style="--d:420ms">
+            <a class="btn btn-primary" href="#excepcion">Ver la excepción
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <article class="cc glass rv" id="cc" style="--d:250ms" aria-label="Centro de control RPA (simulación)">
+          <header class="cc-head">
+            <span class="live" aria-hidden="true"></span>
+            <span class="mono">Centro de control RPA</span>
+            <span class="mono dim">Caso MX-2026-0917</span>
+            <span class="mono timer" id="ccTimer">00:00</span>
+            <button class="cc-replay" id="ccReplay" type="button">Repetir</button>
+          </header>
+          <ol class="bots" id="bots">
+            <li class="bot" data-r="1" data-state="idle"><div class="bot-top"><span class="bot-id mono">RPA-01 · CRM</span><span class="chip">En cola</span></div><h3>Consultar cliente</h3><p class="res">Esperando inicio</p><div class="prog"><i></i></div></li>
+            <li class="bot" data-r="2" data-state="idle"><div class="bot-top"><span class="bot-id mono">RPA-02 · Pagos</span><span class="chip">En cola</span></div><h3>Validar pago de septiembre</h3><p class="res">Esperando inicio</p><div class="prog"><i></i></div></li>
+            <li class="bot" data-r="3" data-state="idle"><div class="bot-top"><span class="bot-id mono">RPA-03 · Domicilios</span><span class="chip">En cola</span></div><h3>Actualizar dirección</h3><p class="res">Esperando inicio</p><div class="prog"><i></i></div></li>
+            <li class="bot" data-r="4" data-state="idle"><div class="bot-top"><span class="bot-id mono">RPA-04 · Agenda</span><span class="chip">En cola</span></div><h3>Revisar disponibilidad</h3><p class="res">Esperando inicio</p><div class="prog"><i></i></div></li>
+            <li class="bot" data-r="5" data-state="idle"><div class="bot-top"><span class="bot-id mono">RPA-05 · Agenda</span><span class="chip">En cola</span></div><h3>Reprogramar visita</h3><p class="res">Espera a RPA-04</p><div class="prog"><i></i></div></li>
+            <li class="bot" data-r="6" data-state="idle"><div class="bot-top"><span class="bot-id mono">RPA-06 · Casos</span><span class="chip">En cola</span></div><h3>Actualizar caso y confirmar</h3><p class="res">Espera a las demás tareas</p><div class="prog"><i></i></div></li>
+          </ol>
+          <ol class="log" id="ccLog" aria-live="off"></ol>
+          <footer class="cc-foot" id="ccFoot">Listo para ejecutar</footer>
+        </article>
+      </div>
+    </section>
+
+    <div class="spacer spacer-long" id="t4" aria-hidden="true"></div>
+
+    <section class="sec" id="excepcion" aria-labelledby="h6">
+      <div class="split">
+        <div class="col">
+          <span class="badge glass mono rv" style="--d:100ms">Paso 04 · Revisión humana</span>
+          <h2 class="h1 shadow-lg rv" id="h6" style="--d:200ms">Lo que no cuadra,<br>lo decide una persona.</h2>
+          <p class="body2 shadow-md rv" style="--d:300ms">El robot de pagos encontró el pago, pero la referencia está incompleta. La IA no la inventa: reúne la evidencia, propone una opción y le pasa el caso a una persona. Con su decisión, los robots retoman el flujo.</p>
+          <div class="ctas rv" style="--d:420ms">
+            <a class="btn btn-primary" href="#resultado">Ver el resultado
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <article class="rev glass rv" id="rev" data-state="pending" style="--d:250ms" aria-label="Revisión humana de la excepción (simulación)">
+          <header class="rev-head">
+            <span class="mono">Excepción · RPA-02 Pagos</span>
+            <span class="mono dim">MX-2026-0917</span>
+            <span class="chip rev-state" id="revState">Esperando revisión</span>
+          </header>
+          <div class="rev-body">
+            <dl class="ev">
+              <dt>Encontró el robot</dt><dd>Pago de septiembre · $849.00 · 02/09</dd>
+              <dt>Referencia</dt><dd class="inc" id="refFound">TX-2291-··· (incompleta)</dd>
+              <dt>Dijo la clienta</dt><dd><p class="quote">“Ya lo hice. Tengo el comprobante.”</p></dd>
+            </dl>
+            <div class="sugg" role="note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+              <span><b>Sugerencia de la IA: TX-2291-8847</b><br>En el estado bancario hay un movimiento de $849.00 del 02/09 con esa referencia. Coincide en monto y fecha, pero la IA no lo da por hecho.</span>
+            </div>
+            <div class="field">
+              <label class="mono" for="refInput">Referencia de pago</label>
+              <input id="refInput" type="text" value="TX-2291-" autocomplete="off" spellcheck="false" inputmode="text" aria-describedby="refHint">
+              <span class="hint" id="refHint">Aprueba la sugerencia o corrige el dato.</span>
+            </div>
+            <div class="acts">
+              <button class="act" type="button" id="actApprove">Aprobar sugerencia</button>
+              <button class="act" type="button" id="actCorrect">Corregir dato</button>
+              <button class="act primary" type="button" id="actResume" disabled>Reanudar flujo</button>
+            </div>
+            <ol class="rev-log" id="revLog" aria-live="polite"></ol>
+          </div>
+          <footer class="rev-foot">
+            <span id="revAudit">Toda decisión queda registrada.</span>
+            <button type="button" id="revReset">Repetir</button>
+          </footer>
+        </article>
+      </div>
+    </section>
+
+    <div class="spacer spacer-long" id="t5" aria-hidden="true"></div>
+
+    <section class="sec" id="resultado" aria-labelledby="h7">
+      <div class="split">
+        <div class="col">
+          <span class="badge glass mono rv" style="--d:100ms">Paso 05 · Resultado</span>
+          <h2 class="h1 shadow-lg rv" id="h7" style="--d:200ms">Resuelto en minutos,<br>con todo registrado.</h2>
+          <p class="body2 shadow-md rv" style="--d:300ms">La clienta recibe su confirmación en menos de cinco minutos. Los robots hicieron el trabajo repetible, la IA entendió y ordenó el caso, y una persona decidió lo único que no estaba claro. Cada paso quedó registrado.</p>
+          <div class="ctas rv" style="--d:420ms">
+            <a class="btn btn-primary" href="#genesys">Cómo se conecta con Genesys
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <article class="outcome ai glass rv" id="res" style="--d:250ms" aria-label="Resultado del caso (métricas simuladas)">
+          <div class="ai-tabs" role="tablist">
+            <button class="ai-tab" role="tab" id="rtab-a" aria-selected="true" aria-controls="rpane-a">Métricas</button>
+            <button class="ai-tab" role="tab" id="rtab-b" aria-selected="false" aria-controls="rpane-b" tabindex="-1">Registro del caso</button>
+          </div>
+
+          <div class="ai-pane" id="rpane-a" role="tabpanel" aria-labelledby="rtab-a">
+            <p class="ai-h mono">Tiempo para resolver el caso</p>
+            <div class="cmp">
+              <div class="cmp-row manual"><span class="lbl">Manual (estimado)</span><span class="cmp-bar"><i style="--w:100%"></i></span><span class="val">38 min</span></div>
+              <div class="cmp-row auto"><span class="lbl">Con RPA + IA</span><span class="cmp-bar"><i style="--w:12.5%; --bd:300ms"></i></span><span class="val">4 min 44 s</span></div>
+              <p class="speed">8 veces más rápido, sin saltarse ningún control.</p>
+            </div>
+            <ul class="kpis">
+              <li class="kpi"><b data-to="5">0</b><span>sistemas coordinados</span></li>
+              <li class="kpi"><b data-to="6">0</b><span>tareas ejecutadas por robots</span></li>
+              <li class="kpi human"><b data-to="1">0</b><span>decisión humana, solo donde hacía falta</span></li>
+              <li class="kpi"><b data-to="100" data-suffix="%">0%</b><span>de los pasos registrados</span></li>
+            </ul>
+          </div>
+
+          <div class="ai-pane" id="rpane-b" role="tabpanel" aria-labelledby="rtab-b" hidden>
+            <ol class="trail">
+              <li><span class="dot"></span><span class="t">09:12:00</span><span><span class="who mono">Canal de voz</span>Entra la llamada de la clienta</span></li>
+              <li class="ia"><span class="dot"></span><span class="t">09:14:00</span><span><span class="who mono">IA</span>3 intenciones detectadas · confianza 0.92</span></li>
+              <li><span class="dot"></span><span class="t">09:14:02</span><span><span class="who mono">RPA</span>6 robots inician en paralelo</span></li>
+              <li class="exc"><span class="dot"></span><span class="t">09:14:09</span><span><span class="who mono">RPA-02 Pagos</span>Excepción: referencia de pago incompleta</span></li>
+              <li class="hum"><span class="dot"></span><span class="t">09:16:38</span><span><span class="who mono">Back office</span>Referencia confirmada: TX-2291-8847</span></li>
+              <li class="ok"><span class="dot"></span><span class="t">09:16:44</span><span><span class="who mono">RPA-06 Casos</span>Caso cerrado y confirmación enviada</span></li>
+            </ol>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <div class="spacer spacer-short" id="t6" aria-hidden="true"></div>
+
+    <section class="sec" id="genesys" aria-labelledby="h9">
+      <div class="split">
+        <div class="col">
+          <span class="badge glass mono rv" style="--d:100ms">Integración</span>
+          <h2 class="h1 shadow-lg rv" id="h9" style="--d:200ms">Así se conecta<br>con Genesys.</h2>
+          <p class="body2 shadow-md rv" style="--d:300ms">Genesys Cloud ya es el canal de voz de la operación. La capa de IA y los robots se conectan a él sin cambiar cómo trabaja el agente: escuchan la llamada, ejecutan el trabajo y devuelven el resultado a su pantalla.</p>
+          <div class="ctas rv" style="--d:420ms">
+            <a class="btn btn-primary" href="#cierre">Ver el cierre
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <article class="arch glass rv" id="arch" style="--d:250ms" aria-label="Arquitectura de integración con Genesys Cloud">
+          <p class="ai-h mono">Del audio al resultado</p>
+          <ol class="flowv">
+            <li class="node g" data-k="1"><span class="nb mono">1</span><div><h3>Genesys Cloud <span class="pill mono">Voz</span></h3><p>La llamada entra por la cola de voz y se comparte en tiempo real.</p><span class="tech mono">AudioHook · transcripción de Genesys</span></div></li>
+            <li class="node ia" data-k="2"><span class="nb mono">2</span><div><h3>Capa de IA</h3><p>Voz a texto, intenciones, datos y nivel de confianza.</p><span class="tech mono">Voz a texto · modelo de IA</span></div></li>
+            <li class="node" data-k="3"><span class="nb mono">3</span><div><h3>Orquestador</h3><p>Reparte tareas, respeta dependencias y registra cada paso.</p><span class="tech mono">API · cola de tareas</span></div></li>
+            <li class="node" data-k="4"><span class="nb mono">4</span><div><h3>Robots RPA</h3><p>Ejecutan en CRM, pagos, domicilios, agenda y casos.</p><span class="tech mono">Robots en Python</span></div></li>
+            <li class="node g" data-k="5"><span class="nb mono">5</span><div><h3>De vuelta a Genesys</h3><p>El agente ve el resultado; las excepciones van a revisión humana.</p><span class="tech mono">Data Actions · widget del agente</span></div></li>
+          </ol>
+          <p class="arch-note">Las funciones disponibles dependen de la configuración y licencias de Genesys Cloud de cada operación.</p>
+        </article>
+      </div>
+    </section>
+
+    <div class="spacer spacer-short" aria-hidden="true"></div>
+
+    <section class="sec" id="cierre" aria-labelledby="h8">
+      <div class="split">
+        <div class="col">
+          <span class="badge glass mono rv" style="--d:100ms">Cierre</span>
+          <h2 class="h1 shadow-lg rv" id="h8" style="--d:200ms">RPA evoluciona.</h2>
+          <p class="body2 shadow-md rv" style="--d:300ms">El caso de hoy no reemplazó a los robots: les dio contexto. Esa es la evolución. El RPA sigue siendo el que ejecuta, y cada capa de IA lo prepara para resolver casos más complejos, con personas en las decisiones que importan.</p>
+          <div class="ctas rv" style="--d:420ms">
+            <a class="btn btn-primary" href="#top" data-scroll-ms="7000">Recorrer el caso otra vez
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <article class="evo glass rv" style="--d:250ms" aria-label="La evolución del RPA">
+          <p class="ai-h mono">La evolución</p>
+          <ol class="stages">
+            <li class="stage"><span class="n mono">01</span><div><h3>RPA <span class="pill mono">Base</span></h3><p>Ejecuta reglas fijas, rápido y auditable.</p></div></li>
+            <li class="stage is-now"><span class="n mono">02</span><div><h3>RPA + IA <span class="pill mono">Lo que viste hoy</span></h3><p>La IA entiende el caso y detecta excepciones; el RPA ejecuta.</p></div></li>
+            <li class="stage is-next"><span class="n mono">03</span><div><h3>Agentes de IA <span class="pill mono">Siguiente paso</span></h3><p>Planean y coordinan el trabajo usando a los robots como sus manos, con personas en los puntos de decisión.</p></div></li>
+          </ol>
+          <div class="how">
+            <p class="ai-h mono">Cómo se integra</p>
+            <ul>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Los robots que ya existen se vuelven herramientas; no se tiran.</span></li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>La IA entra por capas, empezando por un solo proceso.</span></li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>El control humano y la trazabilidad se diseñan desde el inicio.</span></li>
+            </ul>
+          </div>
+        </article>
+      </div>
+      <footer class="site-foot shadow-md">
+        <span>IT Solutions · RPA + IA</span>
+        <span>Meridian CX es una empresa ficticia. Datos, sistemas y métricas simulados.</span>
+      </footer>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  const VIDEO_URL = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260729_102822_0e6c87e8-c141-4744-bf32-ad30db296371.mp4";
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // A reload always starts at the beginning of the story (no restored scroll position)
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  if (!location.hash) scrollTo(0, 0);
+
+  /* ---------- reveal on enter ---------- */
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .15 });
+  document.querySelectorAll('.rv').forEach(el => io.observe(el));
+
+  /* ---------- background timeline: one clip per stretch of the page ----------
+     - Each segment is scrubbed by scroll only inside its own range.
+     - The next segment fades in over `fade` px.
+     - Only the current segment and its neighbours are kept in memory; the rest are released. */
+  const HERO_URL = VIDEO_URL;
+  const topOf = id => { const el = document.getElementById(id); return el ? el.getBoundingClientRect().top + scrollY : 0; };
+  const maxScroll = () => document.documentElement.scrollHeight - innerHeight;
+  const fullyRead = id => { const el = document.getElementById(id); if (!el) return 0; return Math.min(maxScroll(), topOf(id) + Math.max(0, el.offsetHeight - innerHeight)); };
+  const SEGMENTS = [
+    // Hero (mismo video de CloudFront, preparado para scroll): hasta que "Caso simulado" queda completo en pantalla
+    { src: 'media/00-hero.mp4',     poster: 'media/00-hero.jpg',     fallback: HERO_URL, shade: 0, idleRange: 3.5, idlePeriod: 6000, idleAtStart: false,   range: () => [0, fullyRead('recorrido')] },
+    // Núcleo: acercamiento desde "Caso simulado", pasa por el Paso 1 y termina ya camino al Paso 2
+    { src: 'media/01-nucleo.mp4',   poster: 'media/01-nucleo.jpg',   shade: .26, range: () => [fullyRead('recorrido'), fullyRead('solicitud') + innerHeight * .9] },
+    // Destello y órbitas: entre el Paso 1 y el Paso 2; al llegar a "La IA analiza" ya se ven las órbitas
+    { src: 'media/02-destello.mp4', poster: 'media/02-destello.jpg', shade: .22, range: () => [fullyRead('solicitud') + innerHeight * .9, fullyRead('analiza')] },
+    // Energía: entre el Paso 2 y el Paso 3; se apaga, arranca de nuevo y se forman varias órbitas (los robots)
+    { src: 'media/03-energia.mp4',  poster: 'media/03-energia.jpg',  shade: .22, range: () => [fullyRead('analiza'), fullyRead('rpa')] },
+    // Apertura del núcleo: entre el Paso 3 y el Paso 4; el sistema "se abre" para que una persona revise el caso
+    { src: 'media/04-apertura.mp4', poster: 'media/04-apertura.jpg', shade: .26, range: () => [fullyRead('rpa'), fullyRead('excepcion')] },
+    // Concentración: entre el Paso 4 y el Paso 5; la esfera se cierra y libera la energía (caso resuelto)
+    { src: 'media/05-resultado.mp4', poster: 'media/05-resultado.jpg', shade: .28, range: () => [fullyRead('excepcion'), fullyRead('resultado')] },
+  ];
+
+  const bgfx = document.getElementById('bgfx');
+  const cv = document.getElementById('stage'), ctx = cv.getContext('2d');
+  const shadeEl = document.getElementById('shade');
+  const toast = document.getElementById('toast');
+  const warn = msg => { toast.textContent = msg; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 8000); };
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  let W = 0, H = 0;
+  function sizeStage() {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    W = cv.width = Math.round(innerWidth * dpr); H = cv.height = Math.round(innerHeight * dpr);
+  }
+  function cover(src, sw, sh, alpha) {
+    if (!sw || !sh) return;
+    const k = Math.max(W / sw, H / sh), dw = sw * k, dh = sh * k;
+    ctx.globalAlpha = alpha; ctx.drawImage(src, (W - dw) / 2, (H - dh) / 2, dw, dh); ctx.globalAlpha = 1;
+  }
+  const segs = SEGMENTS.map(def => ({ ...def, v: null, url: null, img: null, usingFallback: false, ready: false, frames: null, building: false, lastSeek: -1, s: 0, e: 1 }));
+
+  function load(sg, idx) {
+    if (sg.v) return;
+    const v = document.createElement('video');
+    v.muted = true; v.defaultMuted = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto';
+    sg.url = sg.usingFallback ? sg.fallback : sg.src;
+    v.src = sg.url; sg.v = v; bgfx.appendChild(v);
+    if (sg.poster && !sg.img) { sg.img = new Image(); sg.img.decoding = 'async'; sg.img.src = sg.poster; }
+    const ok = () => markReady(sg);
+    v.addEventListener('loadeddata', ok); v.addEventListener('canplay', ok);
+    v.addEventListener('error', () => {
+      if (sg.v !== v) return;
+      if (sg.fallback && !sg.usingFallback) { sg.usingFallback = true; release(sg); load(sg, idx); return; }
+      warn('No se pudo cargar el video de fondo ' + (idx + 1) + '. Revisa que la carpeta "media" esté junto al HTML.');
+    });
+    v.load();
+  }
+  function release(sg) {
+    if (!sg.v) return;
+    if (sg.frames) { sg.frames.forEach(f => f.close && f.close()); sg.frames = null; }
+    sg.v.removeAttribute('src'); sg.v.load(); sg.v.remove(); sg.v = null;
+    sg.url = null; sg.ready = false; sg.building = false; sg.lastSeek = -1;
+  }
+  function markReady(sg) {
+    if (sg.ready || !sg.v) return;
+    sg.ready = true; bgfx.classList.add('on');
+  }
+
+  function measure() { segs.forEach(sg => { const [a, b] = sg.range(); sg.s = a; sg.e = Math.max(a + 1, b); }); }
+
+  // "Reading" = a content section (not the hero) is sitting on screen. Then the background calms down.
+  const readSecs = [...document.querySelectorAll('main > section.sec')].filter(el => el.id !== 'top');
+  let reading = false;
+  function updateReading() {
+    const vh = innerHeight;
+    const now = readSecs.some(el => { const r = el.getBoundingClientRect(); return r.top < vh * .3 && r.bottom > vh * .7; });
+    if (now !== reading) { reading = now; bgfx.classList.toggle('reading', reading); }
+  }
+
+  // keep current segment and its neighbours loaded
+  let lastCur = -1;
+  function manage(y) {
+    let cur = 0;
+    segs.forEach((sg, i) => { if (y >= sg.s) cur = i; });
+    if (cur === lastCur) return;
+    lastCur = cur;
+    segs.forEach((sg, i) => (Math.abs(i - cur) <= 1 ? load(sg, i) : release(sg)));
+  }
+
+  function drawSeg(sg, p, alpha) {
+    if (sg.frames) { const f = sg.frames[Math.round(p * (sg.frames.length - 1))]; cover(f, f.width, f.height, alpha); return true; }
+    const v = sg.v;
+    const posterOk = sg.img && sg.img.complete && sg.img.naturalWidth > 0;
+    if (!v) { if (posterOk && p < .02) { cover(sg.img, sg.img.naturalWidth, sg.img.naturalHeight, alpha); return true; } return false; }
+    if (!sg.ready) {
+      if (v.readyState >= 2) markReady(sg);
+      else {
+        if (v.readyState >= 1 && !v.seeking && sg.lastSeek < 0) { v.currentTime = 0.001; sg.lastSeek = 0.001; }
+        if (posterOk) { bgfx.classList.add('on'); cover(sg.img, sg.img.naturalWidth, sg.img.naturalHeight, alpha); return true; }
+        return false;
+      }
+    }
+    const end = Math.max(0, (v.duration || 0) - .05), base = p * end;
+    // idle breathing: move forward from the parked frame (or backward if there is no room left) and come back
+    const range = sg.idleRange || IDLE.range, period = sg.idlePeriod || IDLE.period;
+    const atStart = sg.idleAtStart === false && (p < .02 || scrollY < innerHeight * .2);   // the very top of the page stays still
+    const calm = reading ? .3 : 1;   // much smaller movement while reading
+    const offset = atStart ? 0 : calm * range * IDLE.amount * (1 - Math.cos(2 * Math.PI * (IDLE.elapsed || 0) / period)) / 2;
+    const dir = base + range <= end ? 1 : -1;
+    const tt = clamp(base + dir * offset, 0, end);
+    if (Math.abs(tt - sg.lastSeek) > 1 / 48 && !v.seeking) { v.currentTime = tt; sg.lastSeek = tt; }
+    cover(v, v.videoWidth, v.videoHeight, alpha);
+    return true;
+  }
+
+  /* ---------- movimiento en reposo ----------
+     When the visitor stops scrolling, the background plays a short stretch of the same clip
+     forward and back (about 1 s each way), so the frame never looks frozen.
+     When scrolling resumes it eases back to the exact frame for that scroll position. */
+  const IDLE = { range: 1.0, period: 2200, waitMs: 150, amount: 0, t0: 0, idle: false, offset: 0 };
+  let lastY = scrollY, stillSince = performance.now();
+  function updateIdle(now) {
+    if (Math.abs(scrollY - lastY) > .5 || Math.abs(scrollY - smoothY) > 6) stillSince = now;
+    lastY = scrollY;
+    const idle = !reduce && !document.hidden && now - stillSince > IDLE.waitMs;
+    if (idle && !IDLE.idle) IDLE.t0 = now;
+    IDLE.idle = idle;
+    IDLE.amount += ((idle ? 1 : 0) - IDLE.amount) * (idle ? .25 : .25);
+    IDLE.elapsed = now - IDLE.t0;
+  }
+
+  let smoothY = scrollY;
+  function renderBg() {
+    smoothY += (scrollY - smoothY) * .12;
+    updateIdle(performance.now());
+    updateReading();
+    const y = smoothY, fade = innerHeight * .45;
+    manage(y);
+    const alphas = segs.map((sg, i) => i === 0 ? 1 : clamp((y - sg.s) / fade));
+    let first = 0;
+    for (let i = segs.length - 1; i > 0; i--) if (alphas[i] >= 1 && segs[i].ready) { first = i; break; }
+    let shade = 0;
+    for (let i = first; i < segs.length; i++) {
+      const sg = segs[i], a = i === first ? 1 : alphas[i];
+      if (a <= 0) continue;
+      const p = clamp((y - sg.s) / (sg.e - sg.s));
+      if (drawSeg(sg, p, a)) shade = shade * (1 - a) + sg.shade * a;
+    }
+    shadeEl.style.opacity = shade.toFixed(3);
+  }
+
+  const call = document.getElementById('call');
+  const callLines = [...call.querySelectorAll('.lines li')];
+  if (reduce) call.classList.add('play', 'marked');
+  else new IntersectionObserver((es, o) => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    o.disconnect();
+    if (SND.on) return;                      // with sound on, the call is driven by the audio instead
+    setTimeout(() => call.classList.add('play'), 350);
+    setTimeout(() => call.classList.add('marked'), 350 + 5 * 650 + 200);
+    setTimeout(() => call.classList.add('ended'), 350 + 5 * 650 + 2600);
+  }), { threshold: .35 }).observe(call);
+
+  const ai = document.getElementById('ai');
+  const runAI = () => {
+    ai.classList.add('go');
+    ai.querySelectorAll('.conf').forEach((el, i) => {
+      const to = +el.dataset.to;
+      if (reduce) { el.textContent = to + '%'; return; }
+      const t0 = performance.now() + i * 200;
+      const tick = now => { const k = clamp((now - t0) / 1200); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))) + '%'; if (k < 1) requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+    });
+  };
+  new IntersectionObserver((es, o) => es.forEach(e => { if (e.isIntersecting) { o.disconnect(); setTimeout(runAI, reduce ? 0 : 400); } }), { threshold: .35 }).observe(ai);
+  const tabs = [...ai.querySelectorAll('.ai-tab')];
+  const selectTab = t => tabs.forEach(x => {
+    const on = x === t;
+    x.setAttribute('aria-selected', on); x.tabIndex = on ? 0 : -1;
+    document.getElementById(x.getAttribute('aria-controls')).hidden = !on;
+  });
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => selectTab(t));
+    t.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const n = tabs[(i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length]; selectTab(n); n.focus();
+    });
+  });
+
+  /* ---------- centro de control RPA (simulación) ---------- */
+  const cc = document.getElementById('cc');
+  const botEls = [...cc.querySelectorAll('.bot')];
+  const ccLog = document.getElementById('ccLog'), ccFoot = document.getElementById('ccFoot'), ccTimer = document.getElementById('ccTimer');
+  const SIM = 2.7;   // 1 s real = 2.7 s simulados
+  const ROBOTS = [
+    { start: 0,    dur: 2600, done: 'Cliente verificado · contrato activo',            logs: ['Sesión iniciada en CRM', 'Cliente CL-48213 verificado'] },
+    { start: 300,  dur: 3000, stopAt: .72, done: 'Pago encontrado, referencia incompleta', logs: ['Consulta de pagos: septiembre', 'Referencia TX-2291-··· incompleta. Tarea detenida'] },
+    { start: 500,  dur: 3200, done: 'Calle Olivo 128, int. 4B registrada',             logs: ['Formulario de domicilio abierto', 'Dirección actualizada'] },
+    { start: 700,  dur: 2400, done: 'Técnico disponible de 16:00 a 18:00',             logs: ['Agenda del técnico consultada', 'Franja de 16:00 a 18:00 disponible'] },
+    { after: 3,    dur: 2200, done: 'Visita movida a hoy, de 16:00 a 18:00',           logs: ['Reprogramando la visita', 'Visita reprogramada para hoy'] },
+    { after: 4,    dur: 1500, done: 'Caso actualizado · confirmación en espera',       logs: ['Actualizando el caso', 'Caso actualizado; la confirmación espera la revisión humana'] },
+  ];
+  // resolve dependent start times
+  ROBOTS.forEach(r => { if (r.after !== undefined) { const d = ROBOTS[r.after]; r.start = d.start + d.dur + 150; } });
+  const END = Math.max(...ROBOTS.map(r => r.start + r.dur)) + 200;
+  const fmt = ms => { const sec = Math.round(ms * SIM / 1000); return '00:' + String(sec).padStart(2, '0'); };
+  let ccRun = 0;
+  function addLog(ms, r, text, warn) {
+    const li = document.createElement('li'); li.dataset.r = r + 1; if (warn) li.className = 'warn';
+    li.innerHTML = `<span class="t">09:14:${String(2 + Math.round(ms * SIM / 1000)).padStart(2, '0')}</span> <span class="r">RPA-0${r + 1}</span> `;
+    li.appendChild(document.createTextNode(text));
+    ccLog.appendChild(li);
+    while (ccLog.children.length > 12) ccLog.firstChild.remove();
+  }
+  function setBot(i, state, chip, res, pct) {
+    const el = botEls[i];
+    if (el.dataset.state !== state) { el.dataset.state = state; el.querySelector('.chip').textContent = chip; }
+    if (res !== undefined) el.querySelector('.res').textContent = res;
+    el.querySelector('.prog i').style.width = (pct * 100).toFixed(1) + '%';
+  }
+  function resetCC() {
+    ccLog.innerHTML = ''; ccTimer.textContent = '00:00'; ccFoot.textContent = 'Listo para ejecutar';
+    ROBOTS.forEach((r, i) => setBot(i, 'idle', 'En cola', r.after === 3 ? 'Espera a RPA-04' : r.after === 4 ? 'Espera a las demás tareas' : 'Esperando inicio', 0));
+  }
+  function runCC() {
+    const run = ++ccRun; resetCC();
+    const t0 = performance.now(); const logged = ROBOTS.map(() => [false, false]);
+    const step = now => {
+      if (run !== ccRun) return;
+      const t = reduce ? END : now - t0;
+      let active = 0;
+      ROBOTS.forEach((r, i) => {
+        const k = clamp((t - r.start) / r.dur);
+        if (t < r.start) return;
+        if (!logged[i][0]) { logged[i][0] = true; addLog(r.start, i, r.logs[0]); }
+        if (r.stopAt !== undefined && k >= r.stopAt) {
+          setBot(i, 'exc', 'Excepción', r.done, r.stopAt);
+          if (!logged[i][1]) { logged[i][1] = true; addLog(r.start + r.dur * r.stopAt, i, r.logs[1], true); }
+        } else if (k >= 1) {
+          setBot(i, 'ok', 'Completado', r.done, 1);
+          if (!logged[i][1]) { logged[i][1] = true; addLog(r.start + r.dur, i, r.logs[1]); }
+        } else { active++; setBot(i, 'run', 'Ejecutando', 'En proceso…', k); }
+      });
+      ccTimer.textContent = fmt(Math.min(t, END));
+      if (t < END) {
+        ccFoot.innerHTML = `Ejecutando · <b>${active}</b> robots activos`;
+        requestAnimationFrame(step);
+      } else {
+        ccFoot.innerHTML = '<b>5 de 6</b> tareas completadas · <span class="exc">1 excepción enviada a revisión humana</span>';
+      }
+    };
+    requestAnimationFrame(step);
+  }
+  new IntersectionObserver((es, o) => es.forEach(e => { if (e.isIntersecting) { o.disconnect(); setTimeout(runCC, reduce ? 0 : 500); } }), { threshold: .35 }).observe(cc);
+  document.getElementById('ccReplay').addEventListener('click', runCC);
+  botEls.forEach(el => {
+    el.addEventListener('pointerenter', () => cc.dataset.focus = el.dataset.r);
+    el.addEventListener('pointerleave', () => delete cc.dataset.focus);
+  });
+
+  /* ---------- revisión humana (simulación interactiva) ---------- */
+  const rev = document.getElementById('rev');
+  const refInput = document.getElementById('refInput'), refHint = document.getElementById('refHint');
+  const revState = document.getElementById('revState'), revLog = document.getElementById('revLog'), revAudit = document.getElementById('revAudit');
+  const actApprove = document.getElementById('actApprove'), actCorrect = document.getElementById('actCorrect'), actResume = document.getElementById('actResume');
+  const SUGGESTED = 'TX-2291-8847', REF_OK = /^TX-\d{4}-\d{4}$/;
+  let revRun = 0;
+  function setRev(state, chip) { rev.dataset.state = state; revState.textContent = chip; }
+  function resetRev() {
+    revRun++;
+    setRev('pending', 'Esperando revisión');
+    refInput.value = 'TX-2291-'; refInput.disabled = false;
+    refHint.textContent = 'Aprueba la sugerencia o corrige el dato.'; refHint.classList.remove('bad');
+    actApprove.disabled = false; actCorrect.disabled = false; actResume.disabled = true;
+    revLog.innerHTML = ''; revAudit.textContent = 'Toda decisión queda registrada.';
+    const rf = document.getElementById('refFound'); rf.textContent = 'TX-2291-··· (incompleta)'; rf.className = 'inc';
+  }
+  function validate(source) {
+    const v = refInput.value.trim().toUpperCase();
+    if (REF_OK.test(v)) {
+      refInput.value = v;
+      setRev('valid', source === 'ia' ? 'Sugerencia aprobada' : 'Dato corregido');
+      refHint.textContent = source === 'ia' ? 'Referencia confirmada. Ya puedes reanudar el flujo.' : 'Formato correcto. Ya puedes reanudar el flujo.';
+      refHint.classList.remove('bad'); actResume.disabled = false;
+      revAudit.textContent = (source === 'ia' ? 'Sugerencia aprobada' : 'Referencia corregida') + ' por back office · 09:16:38';
+    } else {
+      if (rev.dataset.state !== 'done') setRev('pending', 'Esperando revisión');
+      actResume.disabled = true;
+      refHint.textContent = v.length >= 12 ? 'Formato esperado: TX-0000-0000' : 'Completa la referencia (formato TX-0000-0000).';
+      refHint.classList.toggle('bad', v.length >= 12);
+    }
+  }
+  actApprove.addEventListener('click', () => { refInput.value = SUGGESTED; validate('ia'); actResume.focus(); });
+  actCorrect.addEventListener('click', () => { refInput.focus(); const n = refInput.value.length; refInput.setSelectionRange(n, n); refHint.textContent = 'Escribe la referencia completa del comprobante.'; refHint.classList.remove('bad'); });
+  refInput.addEventListener('input', () => validate('human'));
+  refInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !actResume.disabled) actResume.click(); });
+  actResume.addEventListener('click', () => {
+    const run = ++revRun, ref = refInput.value;
+    refInput.disabled = true; actApprove.disabled = true; actCorrect.disabled = true; actResume.disabled = true;
+    setRev('valid', 'Reanudando…');
+    const lines = [
+      ['09:16:41', 'RPA-02', 'Pago validado con referencia ' + ref],
+      ['09:16:43', 'RPA-06', 'Confirmación enviada a la clienta por SMS y correo'],
+      ['09:16:44', 'Caso', 'MX-2026-0917 cerrado · 6 de 6 tareas completadas'],
+    ];
+    lines.forEach(([t, who, txt], i) => setTimeout(() => {
+      if (run !== revRun) return;
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="t">${t}</span> <span class="ok">${who}</span> `; li.appendChild(document.createTextNode(txt));
+      revLog.appendChild(li); requestAnimationFrame(() => li.classList.add('in'));
+      if (i === lines.length - 1) { setRev('done', 'Flujo reanudado'); revAudit.textContent = 'Decisión registrada en el caso · trazabilidad completa'; refHint.textContent = 'Flujo reanudado con la referencia confirmada.'; const rf = document.getElementById('refFound'); rf.textContent = ref + ' (confirmada)'; rf.className = ''; }
+    }, reduce ? 0 : 500 + i * 700));
+  });
+  document.getElementById('revReset').addEventListener('click', resetRev);
+
+  /* ---------- resultado: pestañas y conteo ---------- */
+  const resEl = document.getElementById('res');
+  const runRes = () => {
+    resEl.classList.add('go');
+    resEl.querySelectorAll('.kpi b').forEach((el, i) => {
+      const to = +el.dataset.to, suf = el.dataset.suffix || '';
+      if (reduce) { el.textContent = to + suf; return; }
+      const t0 = performance.now() + 500 + i * 150;
+      const tick = now => { const k = clamp((now - t0) / 1100); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))) + suf; if (k < 1) requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+    });
+  };
+  new IntersectionObserver((es, o) => es.forEach(e => { if (e.isIntersecting) { o.disconnect(); setTimeout(runRes, reduce ? 0 : 400); } }), { threshold: .35 }).observe(resEl);
+  const rtabs = [...resEl.querySelectorAll('.ai-tab')];
+  const rSelect = t => rtabs.forEach(x => {
+    const on = x === t;
+    x.setAttribute('aria-selected', on); x.tabIndex = on ? 0 : -1;
+    document.getElementById(x.getAttribute('aria-controls')).hidden = !on;
+  });
+  rtabs.forEach((t, i) => {
+    t.addEventListener('click', () => rSelect(t));
+    t.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const n = rtabs[(i + (e.key === 'ArrowRight' ? 1 : -1) + rtabs.length) % rtabs.length]; rSelect(n); n.focus();
+    });
+  });
+
+  /* ---------- sonido: narración por sección + llamada sincronizada ----------
+     Off by default. One <audio> element for everything (keeps mobile browsers happy once unlocked). */
+  const SND = { on: false, played: new Set(), active: null, since: 0, cur: null, callRaf: 0 };
+  const AUD = 'media/audio/';
+  const NARR = { top: 'n00-hero', recorrido: 'n01-caso', solicitud: 'n02-paso1', analiza: 'n03-paso2', rpa: 'n04-paso3',
+                 excepcion: 'n05-paso4', resultado: 'n06-paso5', genesys: 'n07-genesys', cierre: 'n08-cierre' };
+  const CALL_STARTS = [0.25, 4.95, 9.39, 15.23, 20.45];   // when each transcript line is spoken in llamada.mp3
+  const player = new Audio(); player.preload = 'auto';
+  const sndBtn = document.getElementById('snd');
+  const narrSecs = Object.keys(NARR).map(id => document.getElementById(id)).filter(Boolean);
+
+  function activeSection() {
+    const vh = innerHeight;
+    const el = narrSecs.find(el => { const r = el.getBoundingClientRect(); return r.top < vh * .35 && r.bottom > vh * .65; });
+    return el ? el.id : null;
+  }
+  function setSpeaking(on) { sndBtn.classList.toggle('speaking', on); }
+  function stopAudio() {
+    player.onended = null; player.pause(); setSpeaking(false);
+    cancelAnimationFrame(SND.callRaf); call.classList.remove('talking');
+    if (call.classList.contains('sync')) finishCall();
+  }
+  function playFile(name, onend) {
+    player.onended = null; player.src = AUD + name + '.mp3'; player.currentTime = 0;
+    player.onended = () => { setSpeaking(false); onend && onend(); };
+    setSpeaking(true);
+    return player.play().catch(() => setSpeaking(false));
+  }
+  function resetCall() {
+    call.classList.remove('play', 'marked', 'ended'); call.classList.add('sync');
+    callLines.forEach(li => li.classList.remove('shown'));
+  }
+  function finishCall() {
+    callLines.forEach(li => li.classList.add('shown'));
+    call.classList.remove('talking'); call.classList.add('ended');
+  }
+  function startCall() {
+    playFile('llamada', () => { cancelAnimationFrame(SND.callRaf); finishCall(); });
+    call.classList.add('talking');
+    const tick = () => {
+      const t = player.currentTime;
+      callLines.forEach((li, i) => { if (t >= CALL_STARTS[i]) li.classList.add('shown'); });
+      if (!player.paused && !player.ended) SND.callRaf = requestAnimationFrame(tick);
+    };
+    SND.callRaf = requestAnimationFrame(tick);
+  }
+  function narrate(id) {
+    SND.cur = id; SND.played.add(id);
+    if (id === 'solicitud') { resetCall(); playFile(NARR[id], startCall); }
+    else playFile(NARR[id]);
+  }
+  function updateSound(now) {
+    if (!SND.on) return;
+    const id = activeSection();
+    if (id !== SND.active) { SND.active = id; SND.since = now; }
+    if (id === 'top' && SND.cur !== 'top') SND.played.clear();          // back at the start: the tour can be heard again
+    if (id && id !== SND.cur && !SND.played.has(id) && now - SND.since > 450) { stopAudio(); narrate(id); }
+  }
+  sndBtn.addEventListener('click', () => {
+    SND.on = !SND.on;
+    sndBtn.setAttribute('aria-pressed', SND.on);
+    sndBtn.querySelector('.snd-label').textContent = SND.on ? 'Sonido activado' : 'Activar sonido';
+    if (SND.on) {
+      SND.played.clear(); SND.cur = null;
+      const id = activeSection() || 'top';
+      SND.active = id; SND.since = performance.now();
+      narrate(id);                                   // starts inside the click, so the browser allows audio
+    } else { stopAudio(); SND.cur = null; }
+  });
+
+  function loop(t) {
+    updateSound(t);
+    renderBg();
+    miniTick(t);
+    requestAnimationFrame(loop);
+  }
+
+  /* ---------- mini map in the case card ---------- */
+  const pk = document.getElementById('pk');
+  const excp = document.getElementById('excp');
+  const route = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  route.setAttribute('d', 'M40 10 V46 V86'); route.setAttribute('fill', 'none');
+  document.getElementById('mini').appendChild(route);
+  const RL = route.getTotalLength();
+  function miniTick(t) {
+    if (reduce) return;
+    const cyc = (t % 3600) / 3600;           // 0..1
+    let d;
+    const humanAt = 56 / 76;                 // pause at the human node (y=66)
+    if (cyc < .55) d = (cyc / .55) * humanAt;
+    else if (cyc < .75) d = humanAt;
+    else d = humanAt + ((cyc - .75) / .25) * (1 - humanAt);
+    const pt = route.getPointAtLength(d * RL);
+    pk.setAttribute('cx', pt.x); pk.setAttribute('cy', pt.y);
+    pk.setAttribute('fill', d < 20 / 76 ? '#ffffff' : '#F2B35E');
+  }
+
+  /* ---------- slow scroll for in-page links ---------- */
+  // Speed stays almost constant (only short soft start/stop), so the background video plays evenly.
+  const EASE_EDGE = .14;
+  const ease = t => {
+    const a = EASE_EDGE, k = 2 * a * (1 - a);
+    if (t < a) return t * t / k;
+    if (t > 1 - a) return 1 - (1 - t) * (1 - t) / k;
+    return (t - a / 2) / (1 - a);
+  };
+  let scrollJob = 0;
+  function slowScrollTo(el, fixedMs) {
+    const start = scrollY, end = el.getBoundingClientRect().top + scrollY, dist = end - start;
+    const dur = fixedMs || Math.max(1600, Math.min(6500, Math.abs(dist) / innerHeight * 2800) - 1000);
+    const job = ++scrollJob, t0 = performance.now();
+    const stop = () => { scrollJob++; };
+    addEventListener('wheel', stop, { once: true, passive: true });
+    addEventListener('touchstart', stop, { once: true, passive: true });
+    addEventListener('keydown', stop, { once: true });
+    const step = now => {
+      if (job !== scrollJob) return;
+      const k = Math.min(1, (now - t0) / dur);
+      scrollTo(0, start + dist * ease(k));
+      if (k < 1) requestAnimationFrame(step);
+      else { removeEventListener('wheel', stop); removeEventListener('touchstart', stop); removeEventListener('keydown', stop); }
+    };
+    requestAnimationFrame(step);
+  }
+  document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
+    const el = document.getElementById(a.getAttribute('href').slice(1));
+    if (!el) return;
+    e.preventDefault();
+    if (reduce) { el.scrollIntoView(); return; }
+    slowScrollTo(el, +a.dataset.scrollMs || 0);
+  }));
+
+  addEventListener('resize', () => { sizeStage(); measure(); });
+  addEventListener('load', measure);
+  sizeStage(); measure(); setTimeout(measure, 800);
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
