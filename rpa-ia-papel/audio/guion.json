@@ -1,5 +1,5 @@
 {
-  "voz": "Piper es_MX-claude-high (sintética)",
+  "voz": "ElevenLabs · Tamara (voz personalizada)",
   "duracion_total_s": 143,
   "escenas": [
     {
@@ -7,7 +7,7 @@
       "archivo": "escena-01.mp3",
       "inicio_s": 0,
       "duracion_escena_s": 9,
-      "duracion_audio_s": 7.22,
+      "duracion_audio_s": 6.5,
       "texto": "RPA e inteligencia artificial: dos tecnologías que, juntas, automatizan procesos de punta a punta."
     },
     {
@@ -15,7 +15,7 @@
       "archivo": "escena-02.mp3",
       "inicio_s": 9,
       "duracion_escena_s": 15,
-      "duracion_audio_s": 13.96,
+      "duracion_audio_s": 11.57,
       "texto": "RPA significa automatización robótica de procesos. Es un robot de software que usa las mismas aplicaciones que una persona: abre programas, copia datos y rellena formularios, siguiendo un procedimiento definido."
     },
     {
@@ -23,7 +23,7 @@
       "archivo": "escena-03.mp3",
       "inicio_s": 24,
       "duracion_escena_s": 12,
-      "duracion_audio_s": 10.61,
+      "duracion_audio_s": 8.78,
       "texto": "Se aplica a tareas repetitivas: mucho volumen, reglas claras y riesgo de error humano. Son horas de personas cualificadas dedicadas a copiar y pegar."
     },
     {
@@ -31,7 +31,7 @@
       "archivo": "escena-04.mp3",
       "inicio_s": 36,
       "duracion_escena_s": 14,
-      "duracion_audio_s": 12.14,
+      "duracion_audio_s": 10.08,
       "texto": "Un robot sigue cuatro pasos. Se activa por un horario, un correo o un evento. Lee los datos, aplica las reglas del proceso y actúa en los sistemas, dejando registro de todo."
     },
     {
@@ -39,7 +39,7 @@
       "archivo": "escena-05.mp3",
       "inicio_s": 50,
       "duracion_escena_s": 16,
-      "duracion_audio_s": 14.76,
+      "duracion_audio_s": 12.64,
       "texto": "Una plataforma RPA tiene tres piezas. El diseñador, donde se dibuja el flujo. El robot, que lo ejecuta. Y el orquestador, que lo programa y lo mide. UiPath, Automation Anywhere y Power Automate son ejemplos."
     },
     {
@@ -47,7 +47,7 @@
       "archivo": "escena-06.mp3",
       "inicio_s": 66,
       "duracion_escena_s": 11,
-      "duracion_audio_s": 9.88,
+      "duracion_audio_s": 7.97,
       "texto": "El resultado: menos horas manuales, menos errores, trazabilidad completa y capacidad de crecer en volumen sin crecer el equipo al mismo ritmo."
     },
     {
@@ -55,7 +55,7 @@
       "archivo": "escena-07.mp3",
       "inicio_s": 77,
       "duracion_escena_s": 14,
-      "duracion_audio_s": 13.26,
+      "duracion_audio_s": 10.16,
       "texto": "Pero el RPA tiene un límite. Necesita datos con estructura y formatos fijos. Si llega una factura con otro diseño, o un correo en texto libre, el robot no sabe dónde buscar y se detiene."
     },
     {
@@ -63,7 +63,7 @@
       "archivo": "escena-08.mp3",
       "inicio_s": 91,
       "duracion_escena_s": 11,
-      "duracion_audio_s": 10.19,
+      "duracion_audio_s": 8.41,
       "texto": "Aquí entra la inteligencia artificial. Lee documentos y mensajes tal como llegan, entiende su contenido y devuelve datos ordenados, listos para usarse."
     },
     {
@@ -71,7 +71,7 @@
       "archivo": "escena-09.mp3",
       "inicio_s": 102,
       "duracion_escena_s": 15,
-      "duracion_audio_s": 13.6,
+      "duracion_audio_s": 10.53,
       "texto": "Combinadas, cada una hace lo que mejor sabe. La inteligencia artificial interpreta la entrada. El RPA ejecuta en los sistemas. Y cuando hay dudas, una persona revisa el caso antes de continuar."
     },
     {
@@ -79,7 +79,7 @@
       "archivo": "escena-10.mp3",
       "inicio_s": 117,
       "duracion_escena_s": 11,
-      "duracion_audio_s": 9.82,
+      "duracion_audio_s": 7.84,
       "texto": "Se usa en facturas y pagos, atención al cliente, altas de clientes y reclamaciones: procesos con documentos, reglas y varios sistemas."
     },
     {
@@ -87,7 +87,7 @@
       "archivo": "escena-11.mp3",
       "inicio_s": 128,
       "duracion_escena_s": 15,
-      "duracion_audio_s": 14.21,
+      "duracion_audio_s": 11.52,
       "texto": "Para empezar bien: elige un proceso estable, mide antes de automatizar, deja las excepciones a una persona y registra cada acción. El RPA es quien ejecuta; la inteligencia artificial, quien entiende."
     }
   ]
