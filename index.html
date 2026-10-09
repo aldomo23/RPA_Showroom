@@ -2,27 +2,137 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>IT Solutions · RPA + IA</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RPA · IT Solutions</title>
+<meta name="description" content="Showroom de automatización: recorridos para ver cómo trabajan juntos el RPA y la inteligencia artificial.">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5' stroke-linejoin='round'%3E%3Cpath d='M12 2.5 20.2 7.25v9.5L12 21.5 3.8 16.75v-9.5Z'/%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:title" content="RPA · IT Solutions">
+<meta property="og:description" content="Recorridos para ver cómo trabajan juntos el RPA y la inteligencia artificial.">
+<meta property="og:image" content="https://aldomo23.github.io/RPA_Showroom/rpa-ia-papel/cover.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+:root{
+  --bg:#0a0a0a; --fg:#fff; --gold:#F2B35E; --muted:rgba(255,255,255,.8);
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --px:20px;
+  color-scheme:dark;
+}
+@media (min-width:640px){ :root{ --px:32px } }
+@media (min-width:1024px){ :root{ --px:48px } }
 *,*::before,*::after{box-sizing:border-box}
-html,body{margin:0;min-height:100%}
-body{background:#0a0a0a;color:#fff;font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:48px;padding:48px 24px;text-align:center}
-h1{margin:0;font-weight:500;font-size:clamp(32px,6vw,56px);letter-spacing:-.02em;line-height:1.1}
-nav{display:flex;flex-direction:column;gap:16px;width:100%;max-width:520px}
-a{display:block;padding:22px 28px;border:1px solid rgba(255,255,255,.3);border-radius:16px;color:#fff;text-decoration:none;font-size:clamp(20px,3.5vw,28px);font-weight:500;transition:background .25s ease,border-color .25s ease}
-a:hover{background:rgba(255,255,255,.1);border-color:#fff}
-a:focus-visible{outline:2px solid #fff;outline-offset:3px}
+html{background:var(--bg)}
+body{margin:0; min-height:100vh; min-height:100svh; display:flex; flex-direction:column; background:var(--bg); color:var(--fg); font-family:var(--sans); -webkit-font-smoothing:antialiased}
+::selection{background:rgba(255,255,255,.2)}
+
+/* fondo: la foto del hero, atenuada para que el texto blanco se lea */
+.bg{position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    linear-gradient(90deg, rgba(10,10,10,.72), rgba(10,10,10,.42) 55%, rgba(10,10,10,.2)),
+    linear-gradient(rgba(10,10,10,.3), rgba(10,10,10,.82)),
+    url("media/00-hero.jpg") 58% 30% / cover no-repeat}
+
+.top{position:relative; z-index:2; display:flex; align-items:center; width:100%; max-width:1136px; margin-inline:auto; padding:max(20px, env(safe-area-inset-top)) var(--px) 0}
+.logo{display:inline-flex; align-items:center; gap:10px; min-height:44px; font-size:18px; font-weight:500; letter-spacing:-.01em; color:inherit; text-decoration:none}
+.logo svg{width:24px; height:24px}
+
+main{position:relative; z-index:2; flex:1; display:flex; flex-direction:column; justify-content:center; gap:clamp(32px,6vh,56px);
+  width:100%; max-width:1136px; margin-inline:auto; padding:32px var(--px) max(64px, env(safe-area-inset-bottom))}
+
+.hero{display:flex; flex-direction:column; align-items:flex-start; gap:20px}
+.badge{display:inline-block; border-left:2px solid #fff; padding:6px 12px; font-size:11px; font-weight:500; letter-spacing:.15em; text-transform:uppercase;
+  background:rgba(16,20,28,.38); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px)}
+h1{margin:0; font-weight:500; font-size:clamp(88px,17vw,184px); line-height:.9; letter-spacing:-.045em; text-shadow:0 2px 4px rgba(0,0,0,.35), 0 8px 30px rgba(0,0,0,.45)}
+.lead{margin:0; max-width:30rem; font-size:clamp(17px,2.2vw,20px); line-height:1.55; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.45), 0 2px 12px rgba(0,0,0,.35)}
+
+.cards{list-style:none; margin:0; padding:0; display:grid; gap:20px; grid-template-columns:repeat(auto-fit, minmax(min(100%, 320px), 1fr))}
+.card{display:flex; flex-direction:column; height:100%; overflow:hidden; border-radius:16px; color:inherit; text-decoration:none;
+  border:1px solid rgba(255,255,255,.16); background:rgba(16,20,28,.5);
+  -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2);
+  transition:transform .3s ease, border-color .3s ease, background .3s ease}
+.card:hover{transform:translateY(-3px); border-color:rgba(255,255,255,.4); background:rgba(16,20,28,.62)}
+.card:focus-visible{outline:2px solid #fff; outline-offset:3px}
+
+.cover{position:relative; aspect-ratio:16/9; overflow:hidden; background:#10141c}
+.cover img{display:block; width:100%; height:100%; object-fit:cover; transition:transform .5s ease}
+.card:hover .cover img{transform:scale(1.03)}
+.cover::after{content:""; position:absolute; inset:0; background:linear-gradient(rgba(10,10,10,0) 45%, rgba(10,10,10,.55))}
+.play{position:absolute; z-index:1; right:14px; bottom:14px; width:48px; height:48px; display:grid; place-items:center; border-radius:50%;
+  background:rgba(16,20,28,.55); border:1px solid rgba(255,255,255,.4); color:#fff;
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); transition:background .3s ease, color .3s ease}
+.play svg{width:18px; height:18px; margin-left:2px}
+.card:hover .play, .card:focus-visible .play{background:#fff; color:#000}
+
+.body{display:flex; flex-direction:column; gap:8px; padding:18px 20px 22px}
+.meta{display:flex; align-items:center; gap:8px; font-size:11px; font-weight:500; letter-spacing:.15em; text-transform:uppercase; color:var(--muted)}
+.meta::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--gold)}
+.title{font-size:22px; font-weight:500; line-height:1.25; letter-spacing:-.01em}
+.desc{font-size:15px; line-height:1.5; color:var(--muted)}
+
+@keyframes rise{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
+.hero > *, .cards > li{animation:rise .45s ease-out both}
+.hero > :nth-child(2){animation-delay:80ms}
+.hero > :nth-child(3){animation-delay:160ms}
+.cards > li:nth-child(1){animation-delay:240ms}
+.cards > li:nth-child(2){animation-delay:320ms}
+.cards > li:nth-child(n+3){animation-delay:400ms}
+@media (prefers-reduced-motion:reduce){
+  .hero > *, .cards > li{animation:none}
+  .card, .cover img, .play{transition:none}
+  .card:hover{transform:none}
+  .card:hover .cover img{transform:none}
+}
 </style>
 </head>
 <body>
-<h1>IT Solutions · RPA + IA</h1>
-<nav>
-  <a href="caso.html">El caso: RPA + IA</a>
-  <a href="rpa-ia-papel/rpa-ia-papel.html">RPA + IA en papel</a>
-</nav>
+<div class="bg" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="logo" href="./">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 20.2 7.25v9.5L12 21.5 3.8 16.75v-9.5Z"/><path d="M12 8.2 15.3 10.1v3.8L12 15.8 8.7 13.9v-3.8Z" opacity=".55"/></svg>
+    IT Solutions
+  </a>
+</header>
+
+<main>
+  <section class="hero" aria-labelledby="titulo">
+    <span class="badge">Showroom</span>
+    <h1 id="titulo">RPA</h1>
+    <p class="lead">Recorridos para ver cómo trabajan juntos la automatización y la inteligencia artificial.</p>
+  </section>
+
+  <ul class="cards" aria-label="Recorridos disponibles">
+    <!-- Para agregar un recorrido: copia un <li> completo y cambia el enlace, la imagen y los textos. -->
+    <li>
+      <a class="card" href="caso.html">
+        <span class="cover">
+          <img src="media/00-hero.jpg" alt="" width="1920" height="1080">
+          <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg></span>
+        </span>
+        <span class="body">
+          <span class="meta">Interactivo · con narración</span>
+          <span class="title">El caso: RPA + IA</span>
+          <span class="desc">Una solicitud crítica, resuelta de principio a fin.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="card" href="rpa-ia-papel/rpa-ia-papel.html">
+        <span class="cover">
+          <img src="rpa-ia-papel/cover.jpg" alt="" width="960" height="540">
+          <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg></span>
+        </span>
+        <span class="body">
+          <span class="meta">Presentación · con voz · 2:23</span>
+          <span class="title">Qué es el RPA</span>
+          <span class="desc">RPA e inteligencia artificial, explicados en 11 escenas.</span>
+        </span>
+      </a>
+    </li>
+  </ul>
+</main>
 </body>
 </html>
