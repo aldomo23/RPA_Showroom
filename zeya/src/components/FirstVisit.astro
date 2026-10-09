@@ -1,0 +1,39 @@
+---
+import SectionHeading from "./SectionHeading.astro";
+import Icon from "./Icon.astro";
+import { firstVisit, site } from "../data/site";
+---
+
+<section id="primera-cita" class="bg-crema py-24 sm:py-32" aria-labelledby="primera-cita-titulo">
+  <div class="container-zeya">
+    <SectionHeading id="primera-cita-titulo" eyebrow={firstVisit.eyebrow} title={firstVisit.title} />
+
+    <ol class="mt-16 grid gap-12 md:grid-cols-3 md:gap-8">
+      {firstVisit.steps.map((step, i) => (
+        <li class="reveal relative" style={`--reveal-delay: ${i * 120}ms`}>
+          <div class="flex items-center gap-4">
+            <span
+              class="flex size-14 shrink-0 items-center justify-center rounded-full border border-vino/40 font-serif text-2xl text-vino"
+              aria-hidden="true"
+            >
+              {i + 1}
+            </span>
+            <span class="h-px flex-1 bg-vino/20" aria-hidden="true" />
+          </div>
+          <h3 class="mt-6 text-3xl text-vino">
+            <span class="sr-only">Paso {i + 1}: </span>{step.title}
+          </h3>
+          <p class="mt-3 text-tinta-suave">{step.text}</p>
+        </li>
+      ))}
+    </ol>
+
+    <div class="reveal mt-16">
+      <a href={site.whatsapp.general} target="_blank" rel="noopener" class="btn btn-vino">
+        <Icon name="whatsapp" size={18} />
+        {firstVisit.cta}
+        <span class="sr-only">(abre WhatsApp en una pestaña nueva)</span>
+      </a>
+    </div>
+  </div>
+</section>

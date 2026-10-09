@@ -1,0 +1,72 @@
+---
+import SectionHeading from "./SectionHeading.astro";
+import Icon from "./Icon.astro";
+import { locations, isPending } from "../data/site";
+---
+
+<section id="sedes" class="bg-vino py-24 text-crema sm:py-32" aria-labelledby="sedes-titulo">
+  <div class="container-zeya">
+    <SectionHeading id="sedes-titulo" eyebrow={locations.eyebrow} title={locations.title} tone="dark" />
+
+    <ul class="mt-16 grid gap-6 md:grid-cols-2">
+      {locations.items.map((loc, i) => (
+        <li class="reveal flex flex-col overflow-hidden rounded-[1.75rem] bg-hueso text-tinta" style={`--reveal-delay: ${i * 100}ms`}>
+          <div class="aspect-[16/10] bg-crema">
+            {isPending(loc.mapEmbedUrl) ? (
+              <div class="flex h-full flex-col items-center justify-center gap-3 border-b border-vino/10 p-6 text-center text-tinta-suave">
+                <Icon name="map" size={32} class="text-vino" />
+                <p class="text-sm">{loc.mapEmbedUrl}</p>
+              </div>
+            ) : (
+              <iframe
+                src={loc.mapEmbedUrl}
+                title={`Mapa de la sede ZEYA en ${loc.city}`}
+                class="h-full w-full border-0"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                allowfullscreen
+              />
+            )}
+          </div>
+
+          <div class="flex flex-1 flex-col p-7 sm:p-10">
+            <h3 class="text-4xl text-vino">{loc.city}</h3>
+            <dl class="mt-6 space-y-5">
+              <div class="flex gap-4">
+                <dt class="mt-1 shrink-0 text-vino">
+                  <Icon name="pin" size={20} />
+                  <span class="sr-only">Dirección</span>
+                </dt>
+                <dd class="text-tinta-suave">{loc.address}</dd>
+              </div>
+              <div class="flex gap-4">
+                <dt class="mt-1 shrink-0 text-vino">
+                  <Icon name="clock" size={20} />
+                  <span class="sr-only">Horario</span>
+                </dt>
+                <dd class="text-tinta-suave">
+                  <ul class="space-y-1">
+                    {loc.hours.map((h) => (
+                      <li>
+                        <span class="text-tinta">{h.days}</span> · {h.time}
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            </dl>
+            {!isPending(loc.mapsUrl) && (
+              <div class="mt-auto pt-8">
+                <a href={loc.mapsUrl} target="_blank" rel="noopener" class="btn btn-outline-vino">
+                  Cómo llegar
+                  <Icon name="arrow" size={18} />
+                  <span class="sr-only">a la sede de {loc.city} (abre Google Maps en una pestaña nueva)</span>
+                </a>
+              </div>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
