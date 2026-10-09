@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+/*
+ * Tokens de marca.
+ * [PENDIENTE] Ajustar los hex exactos con los colores del logo cuando esté en /public/brand/.
+ */
+@theme {
+  --color-vino: #5e1520;
+  --color-vino-oscuro: #3e0d15;
+  --color-vino-claro: #7a2331;
+  --color-crema: #f0d9c8;
+  --color-hueso: #faf5f0;
+  --color-rosa: #d9a5a7; /* rosa empolvado: acento sobre vino o decorativo */
+  --color-rosa-suave: #ecd3cf;
+  --color-tinta: #3e0d15; /* texto principal sobre fondos claros */
+  --color-tinta-suave: #6b4a4e; /* texto secundario (7:1 sobre hueso, 5.7:1 sobre crema) */
+  --color-whatsapp: #1a7f45; /* verde oscurecido: 5:1 con icono blanco */
+
+  --font-serif: "Cormorant Garamond", "Cormorant", Georgia, "Times New Roman", serif;
+  --font-sans: "Jost", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --ease-suave: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 4.5rem; /* compensa el header fijo */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-hueso font-sans text-tinta antialiased;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    font-weight: 400;
+    overflow-x: clip;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-serif;
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .container-zeya {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-3 font-sans text-xs font-medium tracking-[0.22em] uppercase;
+  }
+  .eyebrow::before {
+    content: "";
+    @apply block h-px w-8 bg-current opacity-60;
+  }
+
+  .btn {
+    @apply inline-flex min-h-12 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 py-3 text-[0.95rem] font-medium tracking-wide transition-[background-color,color,border-color,transform] duration-200 ease-(--ease-suave);
+  }
+  .btn:active {
+    transform: scale(0.98);
+  }
+  /* Sobre fondos claros */
+  .btn-vino {
+    @apply bg-vino text-hueso hover:bg-vino-oscuro;
+  }
+  .btn-outline-vino {
+    @apply border border-vino/40 text-vino hover:border-vino hover:bg-vino hover:text-hueso;
+  }
+  /* Sobre fondos vino */
+  .btn-crema {
+    @apply bg-crema text-vino-oscuro hover:bg-hueso;
+  }
+  .btn-outline-crema {
+    @apply border border-crema/50 text-crema hover:border-crema hover:bg-crema hover:text-vino-oscuro;
+  }
+
+  .fine-rule {
+    @apply h-px w-full bg-current opacity-20;
+  }
+}
+
+/* Aparición suave al hacer scroll (solo si hay JS y no se pide movimiento reducido). */
+@media (prefers-reduced-motion: no-preference) {
+  .js .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity 0.8s var(--ease-suave),
+      transform 0.8s var(--ease-suave);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  .js .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Acordeón FAQ con <details> nativo */
+.faq-item summary {
+  list-style: none;
+}
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+.faq-item[open] .faq-icon-v {
+  transform: scaleY(0);
+}

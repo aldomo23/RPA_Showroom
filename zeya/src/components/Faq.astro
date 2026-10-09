@@ -1,0 +1,27 @@
+---
+import SectionHeading from "./SectionHeading.astro";
+import { faq } from "../data/site";
+---
+
+<section id="faq" class="bg-crema py-24 sm:py-32" aria-labelledby="faq-titulo">
+  <div class="container-zeya grid gap-12 lg:grid-cols-12 lg:gap-16">
+    <div class="lg:col-span-4">
+      <SectionHeading id="faq-titulo" eyebrow={faq.eyebrow} title={faq.title} />
+    </div>
+
+    <div class="reveal border-t border-vino/25 lg:col-span-8">
+      {faq.items.map((item) => (
+        <details class="faq-item group border-b border-vino/25">
+          <summary class="flex min-h-16 cursor-pointer items-center justify-between gap-6 py-5 text-left font-serif text-2xl text-vino sm:text-[1.75rem]">
+            <span>{item.q}</span>
+            <span class="relative size-5 shrink-0" aria-hidden="true">
+              <span class="absolute top-1/2 left-0 h-px w-5 -translate-y-1/2 bg-vino" />
+              <span class="faq-icon-v absolute top-0 left-1/2 h-5 w-px -translate-x-1/2 bg-vino transition-transform duration-300" />
+            </span>
+          </summary>
+          <p class="max-w-2xl pb-7 text-tinta-suave">{item.a}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>

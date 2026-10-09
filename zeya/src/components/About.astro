@@ -1,0 +1,29 @@
+---
+import SectionHeading from "./SectionHeading.astro";
+import { about } from "../data/site";
+---
+
+<section id="sobre-zeya" class="bg-hueso py-24 sm:py-32" aria-labelledby="sobre-titulo">
+  <div class="container-zeya">
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-16">
+      <div class="lg:col-span-5">
+        <SectionHeading id="sobre-titulo" eyebrow={about.eyebrow} title={about.title} />
+      </div>
+      <div class="space-y-6 text-lg text-tinta-suave lg:col-span-7 lg:pt-12">
+        {about.paragraphs.map((p, i) => (
+          <p class="reveal" style={`--reveal-delay: ${i * 80}ms`}>{p}</p>
+        ))}
+      </div>
+    </div>
+
+    <ul class="mt-20 grid gap-10 sm:mt-24 md:grid-cols-3 md:gap-8">
+      {about.values.map((value, i) => (
+        <li class="reveal border-t border-vino/20 pt-7" style={`--reveal-delay: ${i * 100}ms`}>
+          <p class="font-serif text-sm text-vino/80 italic">0{i + 1}</p>
+          <h3 class="mt-2 text-3xl text-vino">{value.title}</h3>
+          <p class="mt-3 text-tinta-suave">{value.text}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

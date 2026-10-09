@@ -1,0 +1,20 @@
+---
+interface Props {
+  eyebrow: string;
+  title: string;
+  id: string;
+  intro?: string;
+  tone?: "light" | "dark"; // dark = sección con fondo vino
+  align?: "left" | "center";
+}
+const { eyebrow, title, id, intro, tone = "light", align = "left" } = Astro.props;
+const dark = tone === "dark";
+---
+
+<div class:list={["reveal max-w-2xl", align === "center" && "mx-auto text-center"]}>
+  <p class:list={["eyebrow", dark ? "text-rosa" : "text-vino", align === "center" && "justify-center"]}>{eyebrow}</p>
+  <h2 id={id} class:list={["mt-5 text-4xl sm:text-5xl lg:text-[3.5rem]", dark ? "text-hueso" : "text-vino"]}>
+    {title}
+  </h2>
+  {intro && <p class:list={["mt-5 text-lg font-light", dark ? "text-crema" : "text-tinta-suave"]}>{intro}</p>}
+</div>
