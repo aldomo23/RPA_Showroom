@@ -4,20 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>RPA · IT Solutions</title>
-<meta name="description" content="Showroom de automatización: recorridos para ver cómo trabajan juntos el RPA y la inteligencia artificial.">
+<meta name="description" content="Showroom de automatización: qué es el RPA, cómo funciona y recorridos para verlo trabajar junto a la inteligencia artificial.">
 <meta name="theme-color" content="#0a0a0a">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5' stroke-linejoin='round'%3E%3Cpath d='M12 2.5 20.2 7.25v9.5L12 21.5 3.8 16.75v-9.5Z'/%3E%3C/svg%3E">
 <meta property="og:type" content="website">
 <meta property="og:title" content="RPA · IT Solutions">
-<meta property="og:description" content="Recorridos para ver cómo trabajan juntos el RPA y la inteligencia artificial.">
+<meta property="og:description" content="Qué es el RPA, cómo funciona y recorridos para verlo trabajar junto a la inteligencia artificial.">
 <meta property="og:image" content="https://aldomo23.github.io/RPA_Showroom/rpa-ia-papel/cover.jpg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5' stroke-linejoin='round'%3E%3Cpath d='M12 2.5 20.2 7.25v9.5L12 21.5 3.8 16.75v-9.5Z'/%3E%3C/svg%3E">
+<link rel="preload" href="fonts/SpaceGrotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/DMSans-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+@font-face{font-family:"Space Grotesk"; src:url("fonts/SpaceGrotesk-latin.woff2") format("woff2"); font-weight:400 700; font-style:normal; font-display:swap}
+@font-face{font-family:"DM Sans"; src:url("fonts/DMSans-latin.woff2") format("woff2"); font-weight:400 700; font-style:normal; font-display:swap}
 :root{
   --bg:#0a0a0a; --fg:#fff; --gold:#F2B35E; --muted:rgba(255,255,255,.8);
-  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --display:"Space Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --sans:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --px:20px;
   color-scheme:dark;
 }
@@ -25,70 +27,117 @@
 @media (min-width:1024px){ :root{ --px:48px } }
 *,*::before,*::after{box-sizing:border-box}
 html{background:var(--bg)}
-body{margin:0; min-height:100vh; min-height:100svh; display:flex; flex-direction:column; background:var(--bg); color:var(--fg); font-family:var(--sans); -webkit-font-smoothing:antialiased}
-::selection{background:rgba(255,255,255,.2)}
+body{margin:0; min-height:100vh; min-height:100svh; display:flex; flex-direction:column; background:var(--bg); color:var(--fg); font-family:var(--sans); font-size:16px; line-height:1.5; -webkit-font-smoothing:antialiased}
+::selection{background:rgba(242,179,94,.35)}
 
-/* fondo: la foto del hero, atenuada para que el texto blanco se lea */
-.bg{position:fixed; inset:0; z-index:0; pointer-events:none;
+/* fondo: diagrama de flujo minimalista, un "paquete" de datos recorre el proceso */
+.bg{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
   background:
-    linear-gradient(90deg, rgba(10,10,10,.72), rgba(10,10,10,.42) 55%, rgba(10,10,10,.2)),
-    linear-gradient(rgba(10,10,10,.3), rgba(10,10,10,.82)),
-    url("media/00-hero.jpg") 58% 30% / cover no-repeat}
+    radial-gradient(60% 50% at 82% 22%, rgba(242,179,94,.09), rgba(242,179,94,0) 70%),
+    radial-gradient(50% 60% at 100% 100%, rgba(120,150,255,.07), rgba(120,150,255,0) 70%),
+    var(--bg)}
+.bg svg{position:absolute; inset:0; width:100%; height:100%;
+  -webkit-mask-image:linear-gradient(90deg, transparent 8%, #000 58%); mask-image:linear-gradient(90deg, transparent 8%, #000 58%)}
+@media (max-width:899px){ .bg svg{opacity:.55} }
+.trace{fill:none; stroke:#fff; stroke-opacity:.16; stroke-width:1.25; stroke-linecap:round; stroke-linejoin:round}
+.node{fill:#0a0a0a; stroke:#fff; stroke-opacity:.38; stroke-width:1.25}
+.joint{fill:#fff; fill-opacity:.38}
+.node.gold{stroke:var(--gold); stroke-opacity:.9}
+.packet{fill:none; stroke-linecap:round; stroke-dasharray:6 94; stroke-dashoffset:100; animation:run 8s linear infinite}
+.packet.gold{stroke:var(--gold); stroke-width:2.5}
+.packet.halo{stroke:var(--gold); stroke-width:9; stroke-opacity:.18}
+.packet.pale{stroke:#fff; stroke-width:2; stroke-opacity:.55; animation-duration:11s; animation-delay:-4s}
+@keyframes run{to{stroke-dashoffset:0}}
 
 .top{position:relative; z-index:2; display:flex; align-items:center; width:100%; max-width:1136px; margin-inline:auto; padding:max(20px, env(safe-area-inset-top)) var(--px) 0}
-.logo{display:inline-flex; align-items:center; gap:10px; min-height:44px; font-size:18px; font-weight:500; letter-spacing:-.01em; color:inherit; text-decoration:none}
+.logo{display:inline-flex; align-items:center; gap:10px; min-height:44px; font-family:var(--display); font-size:18px; font-weight:500; letter-spacing:-.01em; color:inherit; text-decoration:none}
 .logo svg{width:24px; height:24px}
 
-main{position:relative; z-index:2; flex:1; display:flex; flex-direction:column; justify-content:center; gap:clamp(32px,6vh,56px);
-  width:100%; max-width:1136px; margin-inline:auto; padding:32px var(--px) max(64px, env(safe-area-inset-bottom))}
+main{position:relative; z-index:2; flex:1; display:flex; flex-direction:column; justify-content:center; gap:clamp(36px,6vh,56px);
+  width:100%; max-width:1136px; margin-inline:auto; padding:32px var(--px) max(56px, env(safe-area-inset-bottom))}
 
-.hero{display:flex; flex-direction:column; align-items:flex-start; gap:20px}
+.label{margin:0 0 12px; font-size:11px; font-weight:500; letter-spacing:.15em; text-transform:uppercase; color:var(--muted)}
 .badge{display:inline-block; border-left:2px solid #fff; padding:6px 12px; font-size:11px; font-weight:500; letter-spacing:.15em; text-transform:uppercase;
   background:rgba(16,20,28,.38); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px)}
-h1{margin:0; font-weight:500; font-size:clamp(88px,17vw,184px); line-height:.9; letter-spacing:-.045em; text-shadow:0 2px 4px rgba(0,0,0,.35), 0 8px 30px rgba(0,0,0,.45)}
-.lead{margin:0; max-width:30rem; font-size:clamp(17px,2.2vw,20px); line-height:1.55; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.45), 0 2px 12px rgba(0,0,0,.35)}
 
-.cards{list-style:none; margin:0; padding:0; display:grid; gap:20px; grid-template-columns:repeat(auto-fit, minmax(min(100%, 320px), 1fr))}
-.card{display:flex; flex-direction:column; height:100%; overflow:hidden; border-radius:16px; color:inherit; text-decoration:none;
+.intro{display:grid; gap:40px; grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){ .intro{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:64px; align-items:end} }
+.what{display:flex; flex-direction:column; align-items:flex-start; gap:20px}
+h1{margin:0; font-family:var(--display); font-weight:500; font-size:clamp(84px,13vw,148px); line-height:.88; letter-spacing:-.055em}
+.what p{margin:0; max-width:34rem}
+.what .big{font-size:clamp(18px,2.1vw,21px); line-height:1.55; color:#fff}
+.what .small{font-size:16px; color:var(--muted)}
+
+.steps{list-style:none; margin:0; padding:2px 20px; border-radius:16px; border:1px solid rgba(255,255,255,.16); background:rgba(14,17,24,.68);
+  -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2)}
+.step{display:flex; gap:16px; padding:14px 0; border-bottom:1px solid rgba(255,255,255,.12)}
+.step:last-child{border-bottom:0}
+.idx{flex:none; width:22px; padding-top:3px; font-family:var(--display); font-size:13px; font-weight:500; letter-spacing:.08em; color:var(--gold); font-variant-numeric:tabular-nums}
+.step h3{margin:0; font-family:var(--display); font-size:17px; font-weight:500; letter-spacing:-.01em}
+.step p{margin:2px 0 0; font-size:14.5px; line-height:1.45; color:var(--muted)}
+
+.tours{list-style:none; margin:0; padding:0; max-width:760px; display:grid; gap:12px; grid-template-columns:repeat(auto-fill, minmax(min(100%, 300px), 1fr))}
+.tour{display:flex; align-items:center; gap:14px; padding:10px 16px 10px 10px; border-radius:14px; color:inherit; text-decoration:none;
   border:1px solid rgba(255,255,255,.16); background:rgba(16,20,28,.5);
   -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2);
   transition:transform .3s ease, border-color .3s ease, background .3s ease}
-.card:hover{transform:translateY(-3px); border-color:rgba(255,255,255,.4); background:rgba(16,20,28,.62)}
-.card:focus-visible{outline:2px solid #fff; outline-offset:3px}
-
-.cover{position:relative; aspect-ratio:16/9; overflow:hidden; background:#10141c}
-.cover img{display:block; width:100%; height:100%; object-fit:cover; transition:transform .5s ease}
-.card:hover .cover img{transform:scale(1.03)}
-.cover::after{content:""; position:absolute; inset:0; background:linear-gradient(rgba(10,10,10,0) 45%, rgba(10,10,10,.55))}
-.play{position:absolute; z-index:1; right:14px; bottom:14px; width:48px; height:48px; display:grid; place-items:center; border-radius:50%;
-  background:rgba(16,20,28,.55); border:1px solid rgba(255,255,255,.4); color:#fff;
-  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); transition:background .3s ease, color .3s ease}
-.play svg{width:18px; height:18px; margin-left:2px}
-.card:hover .play, .card:focus-visible .play{background:#fff; color:#000}
-
-.body{display:flex; flex-direction:column; gap:8px; padding:18px 20px 22px}
-.meta{display:flex; align-items:center; gap:8px; font-size:11px; font-weight:500; letter-spacing:.15em; text-transform:uppercase; color:var(--muted)}
-.meta::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--gold)}
-.title{font-size:22px; font-weight:500; line-height:1.25; letter-spacing:-.01em}
-.desc{font-size:15px; line-height:1.5; color:var(--muted)}
+.tour:hover{transform:translateY(-2px); border-color:rgba(255,255,255,.4); background:rgba(16,20,28,.65)}
+.tour:focus-visible{outline:2px solid #fff; outline-offset:3px}
+.thumb{position:relative; flex:none; width:112px; aspect-ratio:16/9; border-radius:8px; overflow:hidden; background:#10141c}
+.thumb img{display:block; width:100%; height:100%; object-fit:cover}
+.thumb::after{content:""; position:absolute; inset:0; background:rgba(10,10,10,.18)}
+.play{position:absolute; z-index:1; left:50%; top:50%; width:30px; height:30px; margin:-15px 0 0 -15px; display:grid; place-items:center; border-radius:50%;
+  background:rgba(16,20,28,.6); border:1px solid rgba(255,255,255,.5); color:#fff; transition:background .3s ease, color .3s ease}
+.play svg{width:11px; height:11px; margin-left:1px}
+.tour:hover .play, .tour:focus-visible .play{background:#fff; color:#000}
+.tbody{display:flex; flex-direction:column; gap:3px; min-width:0}
+.meta{display:flex; align-items:center; gap:7px; white-space:nowrap; font-size:11px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+.meta::before{content:""; flex:none; width:5px; height:5px; border-radius:50%; background:var(--gold)}
+.ttl{font-family:var(--display); font-size:18px; font-weight:500; line-height:1.2; letter-spacing:-.01em}
+.go{flex:none; margin-left:auto; width:18px; height:18px; color:var(--muted); transition:transform .3s ease, color .3s ease}
+.tour:hover .go, .tour:focus-visible .go{transform:translateX(3px); color:#fff}
 
 @keyframes rise{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
-.hero > *, .cards > li{animation:rise .45s ease-out both}
-.hero > :nth-child(2){animation-delay:80ms}
-.hero > :nth-child(3){animation-delay:160ms}
-.cards > li:nth-child(1){animation-delay:240ms}
-.cards > li:nth-child(2){animation-delay:320ms}
-.cards > li:nth-child(n+3){animation-delay:400ms}
+.what > *, .steps-wrap, .tours-wrap{animation:rise .45s ease-out both}
+.what > :nth-child(2){animation-delay:80ms}
+.what > :nth-child(3){animation-delay:140ms}
+.what > :nth-child(4){animation-delay:200ms}
+.steps-wrap{animation-delay:260ms}
+.tours-wrap{animation-delay:340ms}
 @media (prefers-reduced-motion:reduce){
-  .hero > *, .cards > li{animation:none}
-  .card, .cover img, .play{transition:none}
-  .card:hover{transform:none}
-  .card:hover .cover img{transform:none}
+  .what > *, .steps-wrap, .tours-wrap{animation:none}
+  .packet{animation:none; stroke-dashoffset:62}
+  .packet.pale{stroke-dashoffset:30}
+  .tour, .play, .go{transition:none}
+  .tour:hover{transform:none}
+  .tour:hover .go{transform:none}
 }
 </style>
 </head>
 <body>
-<div class="bg" aria-hidden="true"></div>
+<div class="bg" aria-hidden="true">
+  <svg viewBox="0 0 1600 900" preserveAspectRatio="xMaxYMid slice" focusable="false">
+    <defs>
+      <pattern id="dots" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#fff" fill-opacity=".1"/></pattern>
+    </defs>
+    <rect width="1600" height="900" fill="url(#dots)"/>
+    <path class="trace" d="M1600 200H1300Q1260 200 1260 240V400Q1260 440 1220 440H980Q940 440 940 480V640Q940 680 900 680H700"/>
+    <path class="trace" d="M1260 400H1500Q1540 400 1540 360V300"/>
+    <path class="trace" d="M940 480H640Q600 480 600 520V600"/>
+    <path class="trace" d="M1600 520H1440Q1400 520 1400 560V760Q1400 800 1360 800H1100"/>
+    <path class="trace" d="M1120 0V120Q1120 160 1160 160H1300"/>
+    <circle class="joint" cx="1260" cy="400" r="3.5"/>
+    <circle class="joint" cx="940" cy="480" r="3.5"/>
+    <circle class="node gold" cx="700" cy="680" r="6"/>
+    <circle class="node" cx="1540" cy="300" r="5"/>
+    <circle class="node" cx="600" cy="600" r="5"/>
+    <circle class="node" cx="1100" cy="800" r="5"/>
+    <circle class="node" cx="1300" cy="160" r="5"/>
+    <path class="packet halo" pathLength="100" d="M1600 200H1300Q1260 200 1260 240V400Q1260 440 1220 440H980Q940 440 940 480V640Q940 680 900 680H700"/>
+    <path class="packet gold" pathLength="100" d="M1600 200H1300Q1260 200 1260 240V400Q1260 440 1220 440H980Q940 440 940 480V640Q940 680 900 680H700"/>
+    <path class="packet pale" pathLength="100" d="M1600 520H1440Q1400 520 1400 560V760Q1400 800 1360 800H1100"/>
+  </svg>
+</div>
 
 <header class="top">
   <a class="logo" href="./">
@@ -98,41 +147,57 @@ h1{margin:0; font-weight:500; font-size:clamp(88px,17vw,184px); line-height:.9; 
 </header>
 
 <main>
-  <section class="hero" aria-labelledby="titulo">
-    <span class="badge">Showroom</span>
-    <h1 id="titulo">RPA</h1>
-    <p class="lead">Recorridos para ver cómo trabajan juntos la automatización y la inteligencia artificial.</p>
+  <section class="intro" aria-labelledby="titulo">
+    <div class="what">
+      <span class="badge">Showroom</span>
+      <h1 id="titulo">RPA</h1>
+      <p class="big">RPA significa automatización robótica de procesos: un robot de software que usa las mismas aplicaciones que una persona. Abre programas, copia datos y rellena formularios, siguiendo un procedimiento definido.</p>
+      <p class="small">Se aplica a tareas repetitivas, con mucho volumen y reglas claras. Y con inteligencia artificial, el robot también puede entender documentos y mensajes tal como llegan.</p>
+    </div>
+
+    <div class="steps-wrap">
+      <p class="label" id="como">Cómo funciona</p>
+      <ol class="steps" aria-labelledby="como">
+        <li class="step"><span class="idx">01</span><div><h3>Se activa</h3><p>Por un horario, un correo o un evento.</p></div></li>
+        <li class="step"><span class="idx">02</span><div><h3>Lee los datos</h3><p>Toma de los sistemas y documentos lo que necesita.</p></div></li>
+        <li class="step"><span class="idx">03</span><div><h3>Aplica las reglas</h3><p>Sigue el procedimiento del proceso, paso a paso.</p></div></li>
+        <li class="step"><span class="idx">04</span><div><h3>Actúa y registra</h3><p>Trabaja en los sistemas y deja registro de todo.</p></div></li>
+      </ol>
+    </div>
   </section>
 
-  <ul class="cards" aria-label="Recorridos disponibles">
-    <!-- Para agregar un recorrido: copia un <li> completo y cambia el enlace, la imagen y los textos. -->
-    <li>
-      <a class="card" href="caso.html">
-        <span class="cover">
-          <img src="media/00-hero.jpg" alt="" width="1920" height="1080">
-          <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg></span>
-        </span>
-        <span class="body">
-          <span class="meta">Interactivo · con narración</span>
-          <span class="title">El caso: RPA + IA</span>
-          <span class="desc">Una solicitud crítica, resuelta de principio a fin.</span>
-        </span>
-      </a>
-    </li>
-    <li>
-      <a class="card" href="rpa-ia-papel/rpa-ia-papel.html">
-        <span class="cover">
-          <img src="rpa-ia-papel/cover.jpg" alt="" width="960" height="540">
-          <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg></span>
-        </span>
-        <span class="body">
-          <span class="meta">Presentación · con voz · 2:23</span>
-          <span class="title">Qué es el RPA</span>
-          <span class="desc">RPA e inteligencia artificial, explicados en 11 escenas.</span>
-        </span>
-      </a>
-    </li>
-  </ul>
+  <section class="tours-wrap" aria-labelledby="recorridos">
+    <p class="label" id="recorridos">Recorridos</p>
+    <ul class="tours">
+      <!-- Para agregar un recorrido: copia un <li> completo y cambia el enlace, la imagen y los textos. -->
+      <li>
+        <a class="tour" href="caso.html">
+          <span class="thumb">
+            <img src="media/00-hero.jpg" alt="" width="1920" height="1080">
+            <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg></span>
+          </span>
+          <span class="tbody">
+            <span class="meta">Interactivo</span>
+            <span class="ttl">El caso: RPA + IA</span>
+          </span>
+          <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+      </li>
+      <li>
+        <a class="tour" href="rpa-ia-papel/rpa-ia-papel.html">
+          <span class="thumb">
+            <img src="rpa-ia-papel/cover.jpg" alt="" width="960" height="540">
+            <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg></span>
+          </span>
+          <span class="tbody">
+            <span class="meta">Presentación · 2:23</span>
+            <span class="ttl">Qué es el RPA</span>
+          </span>
+          <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+      </li>
+    </ul>
+  </section>
 </main>
 </body>
 </html>
