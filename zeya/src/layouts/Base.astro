@@ -2,6 +2,12 @@
 import "../styles/global.css";
 import { site, locations, isPending, whatsappLink } from "../data/site";
 
+interface Props {
+  title?: string;
+  description?: string;
+}
+const { title = site.seo.title, description = site.seo.description } = Astro.props;
+
 const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
 const ogImage = new URL(site.seo.ogImage, Astro.site ?? site.url).href;
 
@@ -52,8 +58,8 @@ const jsonLd = {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{site.seo.title}</title>
-    <meta name="description" content={site.seo.description} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <meta name="theme-color" content="#5E1520" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -61,8 +67,8 @@ const jsonLd = {
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="es_MX" />
     <meta property="og:site_name" content={site.fullName} />
-    <meta property="og:title" content={site.seo.title} />
-    <meta property="og:description" content={site.seo.description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />

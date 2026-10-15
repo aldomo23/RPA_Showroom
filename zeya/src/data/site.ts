@@ -67,8 +67,8 @@ export const site = {
 
   legal: {
     privacyLabel: "Aviso de privacidad",
-    // [PENDIENTE] URL o ruta del aviso de privacidad (p. ej. "/aviso-de-privacidad").
-    privacyUrl: "[PENDIENTE: URL del aviso de privacidad]",
+    // Página con el aviso de privacidad (contenido en `privacy`, más abajo).
+    privacyUrl: "/aviso-de-privacidad",
   },
 } as const;
 
@@ -104,8 +104,8 @@ export const about = {
   eyebrow: "Sobre ZEYA",
   title: "Belleza que se siente tuya",
   paragraphs: [
-    "[PENDIENTE: validar texto] En ZEYA creemos que cada rostro y cada sonrisa cuentan una historia distinta. Por eso no trabajamos con fórmulas iguales para todos: dedicamos tiempo a conocerte, escuchar lo que buscas y entender cómo te quieres sentir.",
-    "[PENDIENTE: validar texto] Unimos la estética facial y la odontología en un mismo lugar para cuidar la armonía de tu rostro de forma integral. Te acompañamos antes, durante y después de cada tratamiento, con información clara y sin presiones.",
+    "En ZEYA creemos que armonizar no es transformarte, sino resaltar lo que ya es tuyo. Cada persona llega con una historia, una expresión y una sonrisa distintas, y por eso no trabajamos con fórmulas iguales para todos: nos tomamos el tiempo de escucharte, entender qué buscas y explicarte con claridad qué es posible y qué no.",
+    "Reunimos la estética facial y la odontología en un mismo lugar, en nuestras sedes de Ciudad de México y Playa del Carmen, para cuidar la armonía de tu rostro y tu sonrisa de manera integral. Antes de cualquier tratamiento te hacemos una valoración y después te acompañamos con indicaciones claras, sin presiones y a tu ritmo.",
   ],
   values: [
     {
@@ -291,6 +291,98 @@ export const finalCta = {
   title: "Tu primera conversación con ZEYA empieza aquí",
   text: "Cuéntanos qué te gustaría lograr y te orientamos para encontrar la opción adecuada para ti.",
   cta: "Escríbenos por WhatsApp",
+};
+
+// ---------------------------------------------------------------------------
+// Aviso de privacidad (México · LFPDPPP)
+// ---------------------------------------------------------------------------
+// BORRADOR para revisión legal. Cubre el contacto por este sitio, WhatsApp e
+// Instagram. El aviso que firman los pacientes en la clínica (con sus datos de
+// salud) debe entregarse por separado en la primera cita.
+
+export const privacy = {
+  title: "Aviso de privacidad",
+  // Quita este aviso (déjalo como cadena vacía "") cuando un abogado apruebe el texto.
+  draftNotice: "[PENDIENTE: revisión legal] Este aviso es un borrador y aún no está aprobado.",
+  updated: "[PENDIENTE: fecha de última actualización]",
+  intro:
+    "En ZEYA Armonización Orofacial cuidamos tus datos personales y te explicamos con claridad qué hacemos con ellos, de acuerdo con la legislación mexicana en materia de protección de datos personales en posesión de los particulares.",
+  sections: [
+    {
+      title: "1. Quién es el responsable de tus datos",
+      paragraphs: [
+        "El responsable del tratamiento de tus datos personales es [PENDIENTE: nombre completo o razón social], con domicilio en [PENDIENTE: domicilio fiscal completo, México].",
+        "Para cualquier duda sobre este aviso puedes escribirnos a [PENDIENTE: correo para asuntos de privacidad].",
+      ],
+    },
+    {
+      title: "2. Qué datos personales recabamos",
+      paragraphs: ["Según cómo te pongas en contacto con nosotros, podemos tratar:"],
+      items: [
+        "Datos de identificación y contacto: nombre, teléfono, correo electrónico y la ciudad o sede de tu interés.",
+        "Los mensajes que nos envías por WhatsApp, Instagram u otros medios, y la información que decidas compartir en ellos.",
+        "Datos que nos proporcionas en tu valoración o cita, ya en la clínica: edad, antecedentes médicos y dentales, alergias, medicamentos y otra información de salud necesaria para atenderte. Estos son datos personales sensibles.",
+        "Fotografías o videos clínicos de tu rostro o sonrisa, únicamente si nos autorizas por separado.",
+      ],
+    },
+    {
+      title: "3. Para qué usamos tus datos",
+      paragraphs: ["Finalidades necesarias, sin las cuales no podemos atenderte:"],
+      items: [
+        "Responder tus mensajes y darte información sobre nuestros servicios.",
+        "Agendar, confirmar o reprogramar tus citas.",
+        "Realizar tu valoración, brindarte el servicio y dar seguimiento a tu tratamiento.",
+        "Integrar y conservar tu expediente clínico conforme a la normativa sanitaria aplicable.",
+        "Cumplir obligaciones legales, fiscales y sanitarias.",
+      ],
+      afterParagraphs: [
+        "Finalidades adicionales, que puedes rechazar sin que eso afecte tu atención:",
+      ],
+      afterItems: [
+        "Enviarte información, recordatorios o promociones de ZEYA.",
+        "Usar fotografías o videos de tu caso en nuestras redes o materiales, solo con tu autorización escrita y por separado.",
+      ],
+      closing:
+        "Si no quieres que usemos tus datos para las finalidades adicionales, escríbenos al correo indicado en la sección 1 y lo registraremos.",
+    },
+    {
+      title: "4. Datos sensibles y tu consentimiento",
+      paragraphs: [
+        "Los datos de salud son sensibles. Solo los recabamos cuando son necesarios para atenderte y los tratamos únicamente con tu consentimiento expreso, que te pediremos por escrito en tu primera cita. No te pediremos datos de salud por este sitio web.",
+      ],
+    },
+    {
+      title: "5. Con quién compartimos tus datos",
+      paragraphs: [
+        "No vendemos tus datos. Podemos compartirlos, solo cuando sea necesario, con:",
+      ],
+      items: [
+        "Autoridades sanitarias, fiscales o judiciales, cuando la ley nos lo exija.",
+        "Proveedores que nos prestan servicios, como las plataformas de mensajería (por ejemplo, WhatsApp) y de alojamiento del sitio, que tratan datos por nuestra cuenta y bajo obligaciones de confidencialidad.",
+        "[PENDIENTE: agregar otros terceros, p. ej. laboratorios dentales o aseguradoras, si aplica]",
+      ],
+    },
+    {
+      title: "6. Tus derechos (ARCO) y cómo ejercerlos",
+      paragraphs: [
+        "Tienes derecho a acceder a tus datos, rectificarlos si son inexactos, cancelarlos u oponerte a su uso para ciertos fines, así como a revocar tu consentimiento. Para ejercerlos, envía una solicitud a [PENDIENTE: correo para derechos ARCO] con tu nombre, un medio para responderte, una copia de tu identificación y la descripción clara de lo que solicitas.",
+        "Te responderemos en los plazos que establece la ley. Si consideras que tu derecho no fue atendido o que tus datos se trataron de forma indebida, puedes acudir a la autoridad competente en materia de protección de datos personales.",
+      ],
+    },
+    {
+      title: "7. Cookies y tecnologías de rastreo",
+      paragraphs: [
+        "Este sitio no utiliza cookies de seguimiento ni herramientas de analítica. Para mostrar las tipografías, tu navegador solicita archivos a los servidores de Google Fonts, que pueden recibir tu dirección IP. Los enlaces a WhatsApp e Instagram te llevan a plataformas de terceros con sus propios avisos de privacidad.",
+        "[PENDIENTE: si se agregan analítica o publicidad (p. ej. Google Analytics o Meta Pixel), actualizar esta sección y mostrar un aviso de cookies]",
+      ],
+    },
+    {
+      title: "8. Cambios a este aviso",
+      paragraphs: [
+        "Si este aviso cambia, publicaremos la nueva versión en esta página con su fecha de actualización.",
+      ],
+    },
+  ],
 };
 
 // ---------------------------------------------------------------------------

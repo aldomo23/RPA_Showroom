@@ -1,0 +1,76 @@
+---
+import Base from "../layouts/Base.astro";
+import Logo from "../components/Logo.astro";
+import Icon from "../components/Icon.astro";
+import { privacy, site } from "../data/site";
+
+interface Section {
+  title: string;
+  paragraphs?: string[];
+  items?: string[];
+  afterParagraphs?: string[];
+  afterItems?: string[];
+  closing?: string;
+}
+const sections: Section[] = privacy.sections;
+const year = new Date().getFullYear();
+---
+
+<Base
+  title={`${privacy.title} | ${site.fullName}`}
+  description="Aviso de privacidad de ZEYA Armonización Orofacial: qué datos personales tratamos, para qué y cómo ejercer tus derechos."
+>
+  <header class="border-b border-vino/10 bg-hueso">
+    <div class="container-zeya flex h-[4.5rem] items-center justify-between gap-4">
+      <a href="/" class="shrink-0 rounded-sm">
+        <Logo variant="light" />
+        <span class="sr-only">, ir al inicio</span>
+      </a>
+      <a href="/" class="inline-flex min-h-11 items-center gap-2 text-[0.95rem] text-vino hover:underline">
+        <Icon name="arrow" size={18} class="rotate-180" />
+        Volver al inicio
+      </a>
+    </div>
+  </header>
+
+  <main id="contenido" class="bg-hueso py-16 sm:py-24">
+    <article class="container-zeya max-w-3xl">
+      <p class="eyebrow text-vino">Legal</p>
+      <h1 class="mt-5 text-4xl text-vino sm:text-6xl">{privacy.title}</h1>
+      <p class="mt-4 text-sm text-tinta-suave">Última actualización: {privacy.updated}</p>
+
+      {privacy.draftNotice && (
+        <p class="mt-8 rounded-2xl border border-vino/30 bg-crema px-5 py-4 text-sm text-tinta">
+          {privacy.draftNotice}
+        </p>
+      )}
+
+      <p class="mt-10 text-lg text-tinta-suave">{privacy.intro}</p>
+
+      {sections.map((s) => (
+        <section class="mt-12 border-t border-vino/15 pt-8" aria-labelledby={`sec-${s.title.slice(0, 2).trim()}`}>
+          <h2 id={`sec-${s.title.slice(0, 2).trim()}`} class="text-3xl text-vino">{s.title}</h2>
+          <div class="mt-4 space-y-4 text-tinta-suave">
+            {s.paragraphs?.map((p) => <p>{p}</p>)}
+            {s.items && (
+              <ul class="list-disc space-y-2 pl-6 marker:text-vino/60">
+                {s.items.map((i) => <li>{i}</li>)}
+              </ul>
+            )}
+            {s.afterParagraphs?.map((p) => <p>{p}</p>)}
+            {s.afterItems && (
+              <ul class="list-disc space-y-2 pl-6 marker:text-vino/60">
+                {s.afterItems.map((i) => <li>{i}</li>)}
+              </ul>
+            )}
+            {s.closing && <p>{s.closing}</p>}
+          </div>
+        </section>
+      ))}
+    </article>
+  </main>
+
+  <footer class="bg-vino-oscuro py-8 text-center text-xs font-light text-crema">
+    <p>© {year} {site.fullName}. Todos los derechos reservados.</p>
+  </footer>
+</Base>
