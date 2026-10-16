@@ -76,7 +76,7 @@ h1{margin:0; font-family:var(--display); font-weight:500; font-size:clamp(84px,1
 .step h3{margin:0; font-family:var(--display); font-size:17px; font-weight:500; letter-spacing:-.01em}
 .step p{margin:2px 0 0; font-size:14.5px; line-height:1.45; color:var(--muted)}
 
-.tours{list-style:none; margin:0; padding:0; max-width:760px; display:grid; gap:12px; grid-template-columns:repeat(auto-fill, minmax(min(100%, 300px), 1fr))}
+.tours{list-style:none; margin:0; padding:0; display:grid; gap:12px; grid-template-columns:repeat(auto-fill, minmax(min(100%, 300px), 1fr))}
 .tour{display:flex; align-items:center; gap:14px; padding:10px 16px 10px 10px; border-radius:14px; color:inherit; text-decoration:none;
   border:1px solid rgba(255,255,255,.16); background:rgba(16,20,28,.5);
   -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2);
@@ -170,6 +170,19 @@ h1{margin:0; font-family:var(--display); font-weight:500; font-size:clamp(84px,1
     <p class="label" id="recorridos">Recorridos</p>
     <ul class="tours">
       <!-- Para agregar un recorrido: copia un <li> completo y cambia el enlace, la imagen y los textos. -->
+      <li>
+        <a class="tour" href="demo-pedido/">
+          <span class="thumb">
+            <img src="demo-pedido/cover.jpg" alt="" width="960" height="600">
+            <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg></span>
+          </span>
+          <span class="tbody">
+            <span class="meta">Demo en vivo · tú participas</span>
+            <span class="ttl">Alta de pedido</span>
+          </span>
+          <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+      </li>
       <li>
         <a class="tour" href="caso.html">
           <span class="thumb">

@@ -1,0 +1,912 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo en vivo · Alta de pedido · IT Solutions</title>
+<meta name="description" content="Simulación interactiva: capturas un pedido en Salesforce y ves al robot terminar el proceso en TP Client y Genesys Cloud.">
+<meta name="theme-color" content="#f4f5f7">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111827' stroke-width='1.5' stroke-linejoin='round'%3E%3Cpath d='M12 2.5 20.2 7.25v9.5L12 21.5 3.8 16.75v-9.5Z'/%3E%3C/svg%3E">
+<link rel="preload" href="../fonts/SpaceGrotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../fonts/DMSans-latin.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"Space Grotesk"; src:url("../fonts/SpaceGrotesk-latin.woff2") format("woff2"); font-weight:400 700; font-display:swap}
+@font-face{font-family:"DM Sans"; src:url("../fonts/DMSans-latin.woff2") format("woff2"); font-weight:400 700; font-display:swap}
+:root{
+  --bg:#f4f5f7; --surface:#fff; --ink:#111827; --ink2:#374151; --muted:#5b6472; --line:#dfe3e8;
+  --gold:#F2B35E; --gold-ink:#8a5a12; --gold-soft:#fff4e2;
+  --ok:#137a4b; --ok-soft:#e5f5ec; --warn:#9a5b00; --warn-soft:#fff3db;
+  --display:"Space Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --sans:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:16px; line-height:1.45; -webkit-font-smoothing:antialiased}
+button{font:inherit; color:inherit}
+:focus-visible{outline:3px solid #2563eb; outline-offset:2px}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+
+/* ---------- barra superior ---------- */
+.bar{display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding:10px 20px; background:var(--surface); border-bottom:1px solid var(--line)}
+.brand{display:flex; align-items:center; gap:10px; color:inherit; text-decoration:none; font-family:var(--display); font-weight:500}
+.brand svg{width:22px; height:22px}
+.bar h1{margin:0; font-family:var(--display); font-size:18px; font-weight:600; letter-spacing:-.01em}
+.sim{display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; background:var(--gold-soft); color:var(--gold-ink); font-size:12.5px; font-weight:600}
+.sim::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--gold)}
+.ctrls{margin-left:auto; display:flex; gap:8px; flex-wrap:wrap}
+.btn{text-decoration:none; display:inline-flex; align-items:center; gap:8px; min-height:40px; padding:8px 14px; border-radius:10px; border:1px solid var(--line); background:var(--surface); cursor:pointer; font-size:14.5px; font-weight:600; transition:background .2s ease, border-color .2s ease}
+.btn:hover{background:#f0f2f5; border-color:#c9cfd6}
+.btn svg{width:16px; height:16px}
+.btn[aria-pressed="true"]{background:var(--ink); color:#fff; border-color:var(--ink)}
+.btn.primary{background:var(--ink); color:#fff; border-color:var(--ink)}
+.btn.primary:hover{background:#2b3442}
+.btn.big{min-height:52px; padding:12px 22px; font-size:17px; border-radius:12px}
+
+/* ---------- pasos ---------- */
+.steps{list-style:none; margin:0; padding:12px 20px; display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:8px; background:var(--surface); border-bottom:1px solid var(--line)}
+.st{display:flex; align-items:center; gap:10px; min-width:0; padding:8px 10px; border-radius:10px; border:1px solid transparent; transition:background .25s ease, border-color .25s ease}
+.st .n{flex:none; width:30px; height:30px; display:grid; place-items:center; border-radius:50%; border:2px solid #c9cfd6; color:var(--muted); font-family:var(--display); font-weight:600; font-size:14px; background:#fff}
+.st .t{min-width:0; display:flex; flex-direction:column}
+.st b{font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.st small{font-size:12.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.st[data-s="active"]{background:#eef3ff; border-color:#c7d6fb}
+.st[data-s="active"] .n{border-color:#2563eb; color:#2563eb}
+.st[data-s="done"] .n{background:var(--ok); border-color:var(--ok); color:#fff}
+.st[data-s="alert"]{background:var(--warn-soft); border-color:#f3cf8f}
+.st[data-s="alert"] .n{background:var(--gold); border-color:var(--gold); color:#3a2500}
+.st[data-s="skip"] .n{border-style:dashed}
+.st[data-s="skip"] small::after{content:" · no aplicó"}
+
+/* ---------- layout ---------- */
+.layout{display:grid; grid-template-columns:minmax(0,1fr) 380px; gap:20px; padding:16px 20px 20px; align-items:start}
+@media (max-width:1439px){ .layout{grid-template-columns:minmax(0,1fr) 340px} }
+@media (max-width:1099px){ .layout{grid-template-columns:minmax(0,1fr)} .steps{grid-template-columns:repeat(4,minmax(0,1fr))} }
+@media (max-width:640px){ .steps{grid-template-columns:repeat(2,minmax(0,1fr))} .bar{padding:10px 14px} .layout{padding:12px 14px} }
+
+.view{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px}
+.where{display:flex; align-items:center; gap:10px; font-size:15px; color:var(--ink2)}
+.where b{color:var(--ink)}
+.dot{width:10px; height:10px; border-radius:50%; background:#2563eb}
+.dot.bot{background:var(--gold); box-shadow:0 0 0 4px rgba(242,179,94,.25)}
+.note{margin:10px 2px 0; font-size:13px; color:var(--muted)}
+.mob{display:none; margin:0 0 10px; padding:10px 12px; border-radius:10px; background:var(--gold-soft); color:var(--gold-ink); font-size:14.5px}
+@media (max-width:700px){ .mob{display:block} }
+
+.fit{position:relative; width:100%; margin-inline:auto; overflow:hidden; border-radius:14px; box-shadow:0 1px 2px rgba(0,0,0,.06), 0 8px 30px rgba(17,24,39,.08)}
+.stage{position:absolute; left:0; top:0; width:1280px; height:800px; transform-origin:0 0; overflow:hidden; font-size:15px; background:#dfe5ec; user-select:none}
+
+/* ---------- panel lateral ---------- */
+.side{display:flex; flex-direction:column; gap:14px}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px}
+.kicker{margin:0 0 6px; font-size:12.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+.narr h2{margin:0 0 8px; font-family:var(--display); font-size:22px; line-height:1.2; letter-spacing:-.01em}
+.narr p{margin:0; font-size:17px; line-height:1.5; color:var(--ink2)}
+.narr .tip{margin-top:12px; padding:10px 12px; border-radius:10px; background:#f3f5f8; font-size:14.5px; color:var(--ink2)}
+.decide{border:2px solid var(--gold); background:var(--gold-soft)}
+.decide h2{margin:0 0 6px; font-family:var(--display); font-size:20px}
+.decide p{margin:0 0 12px; font-size:16px; color:var(--ink2)}
+.decide dl{display:grid; grid-template-columns:auto 1fr; gap:4px 12px; margin:0 0 14px; font-size:15.5px}
+.decide dt{color:var(--muted)} .decide dd{margin:0; font-weight:600}
+.decide .row{display:flex; gap:8px; flex-wrap:wrap}
+.decide .count{margin:10px 0 0; font-size:13.5px; color:var(--muted)}
+.logc h3{margin:0 0 8px; font-size:15px; font-weight:600; display:flex; justify-content:space-between; align-items:baseline}
+.logc h3 span{font-size:13px; color:var(--muted); font-weight:500}
+.log{list-style:none; margin:0; padding:0; max-height:250px; overflow:auto; font-size:14px; display:flex; flex-direction:column; gap:6px}
+.log li{display:grid; grid-template-columns:64px 1fr; gap:8px; padding-bottom:6px; border-bottom:1px solid #eef0f3}
+.log time{font-variant-numeric:tabular-nums; color:var(--muted)}
+.log .ok span::before{content:"✓ "; color:var(--ok); font-weight:700}
+.log .warn span{color:var(--warn); font-weight:600}
+.log .empty{display:block; color:var(--muted); border:0}
+
+/* ---------- escritorio y ventanas (dentro del escenario 1280x800) ---------- */
+.scene{position:absolute; inset:0}
+.scene[hidden]{display:none}
+.wall{position:absolute; inset:0}
+.wall-pc{background:linear-gradient(160deg,#e9eef4,#d6dee8)}
+.wall-vm{background:radial-gradient(80% 70% at 70% 20%, #2a3442, #151a22)}
+.mark{position:absolute; right:24px; bottom:58px; font-family:var(--display); font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:rgba(17,24,39,.35)}
+.wall-vm .mark{color:rgba(255,255,255,.28)}
+.vmbar{position:absolute; left:0; right:0; top:0; height:34px; z-index:5; display:flex; align-items:center; gap:10px; padding:0 14px; background:#0d1117; color:#e5e7eb; font-size:13.5px}
+.vmbar .rec{width:9px; height:9px; border-radius:50%; background:var(--gold); animation:blink 1.4s infinite}
+.vmbar b{color:var(--gold)}
+@keyframes blink{50%{opacity:.25}}
+.task{position:absolute; left:0; right:0; bottom:0; height:44px; z-index:5; display:flex; align-items:center; gap:6px; padding:0 10px; background:rgba(255,255,255,.82); border-top:1px solid rgba(0,0,0,.08)}
+.scene-vm .task{background:rgba(13,17,23,.92); border-top-color:rgba(255,255,255,.08); color:#e5e7eb}
+.tb{display:flex; align-items:center; gap:8px; height:34px; padding:0 10px; border-radius:8px; font-size:13px; border:0; background:transparent; color:inherit}
+.tb.on{background:rgba(37,99,235,.12); box-shadow:inset 0 -2px 0 #2563eb}
+.scene-vm .tb.on{background:rgba(255,255,255,.1); box-shadow:inset 0 -2px 0 var(--gold)}
+.clock{margin-left:auto; font-size:13px; font-variant-numeric:tabular-nums; opacity:.8}
+.ic{display:inline-grid; place-items:center; width:20px; height:20px; border-radius:5px; color:#fff; font-size:10px; font-style:normal; font-weight:700; font-family:var(--display); line-height:1; flex:none}
+.i-sf{background:#0176d3} .i-tp{background:#5b2a86} .i-gc{background:#ff4f1f} .i-q{background:#e0a100; color:#3a2500} .i-os{background:#111827}
+
+.win{position:absolute; left:16px; right:16px; top:16px; bottom:56px; display:flex; flex-direction:column; overflow:hidden; border-radius:10px; background:#fff; box-shadow:0 10px 40px rgba(0,0,0,.25); color:#16191d}
+.scene-vm .win{top:48px}
+.win[hidden]{display:none}
+.win.show{animation:winIn .28s ease-out}
+@keyframes winIn{from{opacity:0; transform:scale(.985) translateY(6px)} to{opacity:1; transform:none}}
+.titlebar{flex:none; display:flex; align-items:center; gap:8px; height:32px; padding:0 12px; background:#f1f3f5; border-bottom:1px solid #e3e6ea; font-size:13px; color:#3d4450}
+.titlebar .wctl{margin-left:auto; letter-spacing:10px; color:#8a929e}
+.wbody{flex:1; min-height:0; position:relative; overflow:hidden}
+
+/* ---------- Salesforce (aproximación) ---------- */
+.sf{background:#f3f3f3; height:100%; display:flex; flex-direction:column}
+.sf-g{display:flex; align-items:center; gap:16px; height:48px; padding:0 16px; background:#fff; border-bottom:1px solid #e5e5e5}
+.sf-brand{display:flex; align-items:center; gap:8px; font-weight:700; color:#032d60; font-size:15px; width:240px}
+.sf-brand i{width:26px; height:18px; border-radius:9px; background:#0176d3}
+.sf-search{flex:1; max-width:520px; display:flex; align-items:center; gap:8px; height:32px; padding:0 12px; border:1px solid #c9c9c9; border-radius:4px; color:#706e6b; font-size:14px; position:relative}
+.sf-search svg{width:14px; height:14px; flex:none}
+.sf-q{color:#181818}
+.sf-q:empty::before{content:"Buscar casos, cuentas y más…"; color:#706e6b}
+.sf-res{position:absolute; left:-1px; right:-1px; top:34px; z-index:3; background:#fff; border:1px solid #c9c9c9; border-radius:4px; box-shadow:0 4px 14px rgba(0,0,0,.12); padding:6px}
+.sf-res[hidden]{display:none}
+.sf-res div{display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:4px; color:#181818}
+.sf-res div:hover, .sf-res .hl{background:#f3f2f2}
+.sf-user{margin-left:auto; width:30px; height:30px; border-radius:50%; background:#032d60; color:#fff; display:grid; place-items:center; font-size:12px; font-weight:700}
+.sf-n{display:flex; align-items:center; gap:22px; height:40px; padding:0 16px; background:#fff; border-bottom:3px solid #0176d3; font-size:14px; color:#181818}
+.sf-n b{font-weight:700; margin-right:12px}
+.sf-n .on{box-shadow:inset 0 -3px 0 #0176d3; padding:10px 0 7px; font-weight:600}
+.sf-main{flex:1; min-height:0; overflow:hidden; padding:12px 16px; display:flex; flex-direction:column; gap:10px}
+.sf-home{display:grid; place-items:center; height:100%; color:#706e6b; font-size:15px}
+.sf-head{display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:0 12px; background:#fff; border:1px solid #e5e5e5; border-radius:6px; padding:8px 14px}
+.sf-ico{width:36px; height:36px; border-radius:6px; background:#f2cf5b; display:grid; place-items:center}
+.sf-ico svg{width:20px; height:20px}
+.sf-head small{display:block; font-size:12.5px; color:#706e6b}
+.sf-head h2{margin:0; font-size:19px; font-weight:700; color:#181818}
+.sf-act{display:flex; gap:6px}
+.sf-act span{padding:6px 12px; border:1px solid #c9c9c9; border-radius:4px; font-size:13px; color:#0176d3; background:#fff}
+.sf-hl{grid-column:1/-1; display:flex; gap:28px; margin-top:6px; padding-top:6px; border-top:1px solid #eee; font-size:13px; color:#706e6b}
+.sf-hl b{display:block; color:#181818; font-size:14px; font-weight:600}
+.sf-path{list-style:none; margin:0; padding:0; display:flex; gap:4px}
+.sf-path li{flex:1; text-align:center; padding:5px 0; background:#e5e5e5; color:#444; font-size:13.5px; font-weight:600; clip-path:polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%)}
+.sf-path li:first-child{clip-path:polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%); border-radius:16px 0 0 16px}
+.sf-path li.done{background:#2e844a; color:#fff}
+.sf-path li.cur{background:#014486; color:#fff}
+.sf-cols{flex:1; min-height:0; display:grid; grid-template-columns:1.35fr 1fr; gap:12px}
+.sfc{background:#fff; border:1px solid #e5e5e5; border-radius:6px; padding:10px 16px 12px; min-height:0; overflow:hidden}
+.sfc h3{margin:0 0 8px; font-size:15px; font-weight:700; color:#181818}
+.frm{display:grid; grid-template-columns:1fr 1fr; gap:8px 14px}
+.frm label, .frm .lb{display:block; font-size:12.5px; color:#444; margin-bottom:2px}
+.frm .full{grid-column:1/-1}
+.frm select, .frm input[type=number]{width:100%; height:32px; padding:0 8px; border:1px solid #c9c9c9; border-radius:4px; font:inherit; font-size:14.5px; background:#fff; color:#181818}
+.frm .ro{display:flex; align-items:center; height:32px; padding:0 8px; border:1px solid #e5e5e5; border-radius:4px; background:#fafafa; font-size:14.5px}
+.chips{display:flex; gap:6px; flex-wrap:wrap}
+.chips label{margin:0}
+.chips input{position:absolute; opacity:0; width:1px; height:1px}
+.chips span{display:inline-flex; align-items:center; justify-content:center; min-width:52px; height:32px; padding:0 10px; border:1px solid #c9c9c9; border-radius:17px; font-size:14.5px; color:#181818; background:#fff; cursor:pointer}
+.chips input:checked + span{background:#0176d3; border-color:#0176d3; color:#fff; font-weight:600}
+.chips input:focus-visible + span{outline:3px solid #2563eb; outline-offset:2px}
+.pol{grid-column:1/-1; margin:-2px 0 0; font-size:12.5px; color:#706e6b}
+.pol b{color:#181818}
+.tot{grid-column:1/-1; display:grid; grid-template-columns:1fr auto; gap:2px 12px; margin:0; padding:8px 12px; border-radius:6px; background:#f3f6f9; font-size:14px}
+.tot dt{color:#444} .tot dd{margin:0; text-align:right; font-variant-numeric:tabular-nums; color:#181818}
+.tot .big{font-weight:700; font-size:15.5px}
+.sf-btn{grid-column:1/-1; justify-self:end; height:36px; padding:0 18px; border:0; border-radius:4px; background:#0176d3; color:#fff; font-size:15px; font-weight:600; cursor:pointer}
+.sf-btn:hover{background:#014486}
+.sf-btn[disabled]{background:#c9c9c9; cursor:default}
+.kv{display:grid; grid-template-columns:auto 1fr; gap:8px 14px; margin:0; font-size:14px}
+.kv dt{color:#706e6b} .kv dd{margin:0; color:#181818}
+.chk{list-style:none; margin:12px 0 0; padding:12px 0 0; border-top:1px solid #eee; display:grid; gap:8px; font-size:14px}
+.chk[hidden]{display:none}
+.chk li{display:flex; gap:8px; align-items:flex-start; color:#706e6b}
+.chk li::before{content:""; flex:none; width:18px; height:18px; margin-top:1px; border-radius:50%; border:2px solid #c9c9c9}
+.chk li.ok{color:#181818} .chk li.ok::before{border-color:#2e844a; background:#2e844a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5 9-10'/%3E%3C/svg%3E") center/12px no-repeat}
+.chk li.bad{color:#8c4b02; font-weight:600} .chk li.bad::before{border-color:#dd7a01; background:#dd7a01 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round'%3E%3Cpath d='M12 6v8M12 18h.01'/%3E%3C/svg%3E") center/12px no-repeat}
+
+/* ---------- TP Client (aproximación, morado TP) ---------- */
+.tp{height:100%; display:flex; flex-direction:column; background:#f6f4f9}
+.tp-top{display:flex; align-items:center; gap:16px; height:50px; padding:0 18px; background:#3c1361; color:#fff}
+.tp-top b{font-family:var(--display); font-size:18px; letter-spacing:-.01em}
+.tp-top b em{font-style:normal; font-weight:500; opacity:.75}
+.tp-top span{font-size:13px; opacity:.8}
+.tp-top .u{margin-left:auto}
+.tp-w{flex:1; min-height:0; display:grid; grid-template-columns:190px 1fr}
+.tp-nav{background:#fff; border-right:1px solid #e6e0ee; padding:12px 8px; display:flex; flex-direction:column; gap:2px; font-size:14.5px; color:#3d3550}
+.tp-nav span{padding:9px 12px; border-radius:8px}
+.tp-nav .on{background:#efe6f8; color:#3c1361; font-weight:600}
+.tp-m{padding:16px 20px; display:flex; flex-direction:column; gap:14px; min-height:0; overflow:hidden}
+.tp-s{display:flex; align-items:flex-end; gap:10px; background:#fff; border:1px solid #e6e0ee; border-radius:10px; padding:12px 14px}
+.tp-s label{display:block; font-size:12.5px; color:#5d5470; margin-bottom:4px}
+.tp-in{display:flex; align-items:center; width:240px; height:36px; padding:0 10px; border:1px solid #cfc4de; border-radius:8px; font-size:15px; background:#fff}
+.tp-btn{height:36px; padding:0 16px; border:0; border-radius:8px; background:#5b2a86; color:#fff; font-size:14.5px; font-weight:600}
+.tp-btn.alt{background:#fff; color:#5b2a86; border:1px solid #5b2a86}
+.tp-c{background:#fff; border:1px solid #e6e0ee; border-radius:10px; padding:14px 16px; display:grid; grid-template-columns:1.2fr 1fr; gap:16px}
+.tp-c[hidden]{display:none}
+.tp-c h3{margin:0 0 2px; font-size:17px; font-weight:700; color:#22183a}
+.tp-c .id{font-size:13px; color:#5d5470; margin-bottom:12px}
+.tp-f{display:grid; grid-template-columns:auto 1fr; gap:10px 14px; align-items:center; font-size:14px; margin:0}
+.tp-f dt{color:#5d5470} .tp-f dd{margin:0; color:#22183a}
+.dd{position:relative; display:inline-flex; align-items:center; justify-content:space-between; gap:10px; min-width:260px; height:34px; padding:0 10px; border:1px solid #cfc4de; border-radius:8px; background:#fff; font-size:14px}
+.dd::after{content:""; width:8px; height:8px; border-right:2px solid #5d5470; border-bottom:2px solid #5d5470; transform:rotate(45deg) translateY(-2px)}
+.dd-l{position:absolute; left:-1px; top:36px; z-index:3; width:calc(100% + 2px); background:#fff; border:1px solid #cfc4de; border-radius:8px; box-shadow:0 6px 18px rgba(34,24,58,.15); padding:4px}
+.dd-l[hidden]{display:none}
+.dd-l div{padding:8px 10px; border-radius:6px}
+.dd-l .hl{background:#efe6f8}
+.pill{display:inline-block; padding:2px 10px; border-radius:999px; font-size:13px; font-weight:600}
+.pill.pros{background:#eee; color:#444} .pill.act{background:#e3f4ea; color:#14663d}
+.tp-al{background:#faf7fd; border:1px solid #e6e0ee; border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:8px; font-size:14px}
+.tp-al b{font-size:14.5px; color:#22183a}
+.tp-al .msg{padding:8px 10px; border-radius:8px; background:#fff; border:1px solid #e6e0ee; color:#3d3550; min-height:58px}
+.tp-h{background:#fff; border:1px solid #e6e0ee; border-radius:10px; padding:12px 16px}
+.tp-h h4{margin:0 0 8px; font-size:15px; color:#22183a}
+.tp-h table{width:100%; border-collapse:collapse; font-size:14px}
+.tp-h th{text-align:left; font-size:12.5px; font-weight:600; color:#5d5470; padding:0 8px 6px 0}
+.tp-h td{padding:8px 8px 8px 0; border-top:1px solid #f0ebf6; color:#22183a}
+.tp-h tr.new td{background:#f6effc; animation:winIn .3s ease-out}
+.toast{position:absolute; right:18px; top:62px; z-index:6; display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:8px; background:#14663d; color:#fff; font-size:14px; font-weight:600; box-shadow:0 6px 18px rgba(0,0,0,.2); animation:winIn .25s ease-out}
+.toast[hidden]{display:none}
+.toast.sfx{background:#2e844a}
+
+/* ---------- Genesys Cloud (aproximación) ---------- */
+.gc{height:100%; display:grid; grid-template-columns:56px 1fr; background:#f5f6f8}
+.gc-rail{background:#1f2a37; display:flex; flex-direction:column; align-items:center; gap:14px; padding-top:14px}
+.gc-rail i{width:26px; height:26px; border-radius:7px; background:rgba(255,255,255,.12)}
+.gc-rail i.on{background:#ff4f1f}
+.gc-col{display:flex; flex-direction:column; min-width:0}
+.gc-top{display:flex; align-items:center; gap:14px; height:48px; padding:0 18px; background:#fff; border-bottom:1px solid #e3e6ea; font-size:14px}
+.gc-top b{font-family:var(--display); font-size:16px}
+.gc-top .av{margin-left:auto; display:flex; align-items:center; gap:8px}
+.gc-top .av::before{content:""; width:10px; height:10px; border-radius:50%; background:#2fb34a}
+.gc-m{flex:1; min-height:0; display:grid; grid-template-columns:1.1fr 1fr; gap:14px; padding:16px 18px}
+.gc-p{background:#fff; border:1px solid #e3e6ea; border-radius:8px; padding:14px 16px; display:flex; flex-direction:column; gap:10px; min-height:0}
+.gc-p h3{margin:0; font-size:15.5px; font-weight:700}
+.gc-p .lb{font-size:12.5px; color:#5b6472; margin-bottom:3px}
+.gc-ch{display:flex; gap:6px}
+.gc-ch span{padding:6px 14px; border:1px solid #c8ced6; border-radius:6px; font-size:14px}
+.gc-ch .on{background:#ff4f1f; border-color:#ff4f1f; color:#fff; font-weight:600}
+.gc-v{display:flex; align-items:center; height:34px; padding:0 10px; border:1px solid #c8ced6; border-radius:6px; font-size:14px; background:#fff}
+.gc-msg{min-height:90px; padding:10px; border:1px solid #c8ced6; border-radius:6px; font-size:14px; color:#2b313a; background:#fff}
+.gc-msg:empty::before{content:"Selecciona una plantilla…"; color:#8a929e}
+.gc-send{align-self:flex-end; height:36px; padding:0 20px; border:0; border-radius:6px; background:#ff4f1f; color:#fff; font-weight:600; font-size:14.5px}
+.thread{flex:1; display:flex; flex-direction:column; gap:10px; padding:4px 0}
+.bub{align-self:flex-end; max-width:90%; padding:10px 12px; border-radius:12px 12px 2px 12px; background:#1f2a37; color:#fff; font-size:14px; animation:winIn .3s ease-out}
+.bub small{display:block; margin-top:6px; text-align:right; font-size:12px; opacity:.8}
+.thread .empty{margin:auto; color:#8a929e; font-size:14px}
+
+/* ---------- Calidad / EMA ---------- */
+.qa{height:100%; background:#fbfaf7; padding:16px 20px; display:flex; flex-direction:column; gap:14px}
+.qa-h{display:flex; align-items:center; gap:12px}
+.qa-h h3{margin:0; font-size:17px; font-weight:700}
+.qa-h span{font-size:13px; color:#6b5a2c; background:#fff1d0; padding:3px 10px; border-radius:999px; font-weight:600}
+.qa-g{display:grid; grid-template-columns:1.25fr .9fr .9fr; gap:28px; align-items:start}
+.qa-b{position:relative; background:#fff; border:1px solid #ece6d8; border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:10px}
+.qa-b + .qa-b::before{content:""; position:absolute; left:-24px; top:46px; width:20px; height:20px; background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a5a12' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E") center/contain no-repeat}
+.qa-b h4{margin:0; font-size:14.5px; font-weight:700}
+.qa-b .sub{margin:-6px 0 0; font-size:12.5px; color:#6b6252}
+.calls{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.call{padding:8px 10px; border:1px solid #ece6d8; border-radius:8px; font-size:13px; background:#fff; transition:background .3s ease, border-color .3s ease}
+.call b{display:block; font-size:13.5px}
+.call.sel{background:#fff4e2; border-color:#F2B35E}
+.call.sel b::after{content:" · en muestra"; color:#8a5a12}
+.py{display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; background:#1f2a37; color:#e5e7eb; font:13px/1.4 ui-monospace,Menlo,Consolas,monospace}
+.py button{margin-left:auto; height:30px; padding:0 12px; border:0; border-radius:6px; background:var(--gold); color:#3a2500; font:600 13px var(--sans)}
+.path{font:12.5px ui-monospace,Menlo,Consolas,monospace; color:#5b5345; background:#f6f3ec; padding:6px 8px; border-radius:6px; word-break:break-all}
+.files{list-style:none; margin:0; padding:0; min-height:82px; display:flex; flex-direction:column; gap:6px; font-size:13.5px}
+.files li{display:flex; align-items:center; gap:8px; padding:7px 9px; border:1px solid #ece6d8; border-radius:8px; animation:winIn .3s ease-out}
+.files li::before{content:""; width:14px; height:16px; border-radius:2px; background:#e8dcc0}
+.files .empty{border:0; color:#8a8170; animation:none} .files .empty::before{display:none}
+.ema{min-height:170px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; text-align:center; border-radius:8px; background:#f6f3ec}
+.ema b{font-family:var(--display); font-size:44px; line-height:1}
+.ema span{font-size:13.5px; color:#5b5345}
+.qa-n{margin:0; font-size:14px; color:#5b5345}
+.qa-btn{align-self:flex-start; height:34px; padding:0 14px; border:0; border-radius:8px; background:#111827; color:#fff; font-size:14px; font-weight:600}
+
+/* ---------- diálogo del robot dentro de la máquina ---------- */
+.vdlg{position:absolute; inset:0; margin:auto; z-index:8; width:520px; height:fit-content; background:#fff; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.45); overflow:hidden; color:#16191d; animation:winIn .3s ease-out}
+.vdlg[hidden]{display:none}
+.vdlg header{display:flex; align-items:center; gap:10px; padding:12px 16px; background:#fff3db; color:#7a4a00; font-weight:700; font-size:15px}
+.vdlg header svg{width:20px; height:20px}
+.vdlg div{padding:16px; font-size:15px; line-height:1.5}
+.vdlg div b{color:#111827}
+
+/* ---------- capas sobre el escenario ---------- */
+.ov{position:absolute; inset:0; z-index:20; display:grid; place-items:center; background:rgba(15,20,28,.55); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px)}
+.ov[hidden]{display:none}
+.ovc{width:640px; max-width:92%; background:#fff; border-radius:18px; padding:30px 34px; box-shadow:0 20px 60px rgba(0,0,0,.35); color:var(--ink)}
+.ovc .kicker{font-size:13px}
+.ovc h2{margin:0 0 10px; font-family:var(--display); font-size:32px; line-height:1.15; letter-spacing:-.02em}
+.ovc p{margin:0 0 14px; font-size:18px; color:var(--ink2)}
+.ovc ol{margin:0 0 20px; padding-left:22px; font-size:17px; color:var(--ink2); display:grid; gap:6px}
+.ovc .acts{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.ovc .hint{font-size:14.5px; color:var(--muted); margin:14px 0 0}
+.kpis{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:6px 0 18px}
+.kpi{padding:14px 16px; border-radius:12px; background:#f4f5f7}
+.kpi b{display:block; font-family:var(--display); font-size:28px; line-height:1.1}
+.kpi span{font-size:14.5px; color:var(--ink2)}
+
+/* ---------- cursor del robot ---------- */
+.cursor{position:absolute; left:0; top:0; z-index:15; pointer-events:none; transform:translate(640px,400px); transition-property:transform; transition-timing-function:cubic-bezier(.45,.05,.25,1)}
+.cursor[hidden]{display:none}
+.cursor svg{display:block; width:30px; height:30px; filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))}
+.cursor span{position:absolute; left:22px; top:24px; padding:3px 9px; border-radius:999px; background:var(--gold); color:#3a2500; font:700 12.5px var(--sans); white-space:nowrap}
+.ripple{position:absolute; z-index:14; width:40px; height:40px; margin:-20px 0 0 -20px; border-radius:50%; border:3px solid var(--gold); pointer-events:none; animation:rip .5s ease-out forwards}
+@keyframes rip{from{transform:scale(.3); opacity:1} to{transform:scale(1.4); opacity:0}}
+.reading{box-shadow:0 0 0 3px var(--gold) !important; border-radius:6px; transition:box-shadow .2s ease}
+.press{filter:brightness(.88)}
+.typing::after{content:""; display:inline-block; width:2px; height:1em; margin-left:2px; vertical-align:-2px; background:currentColor; animation:blink 1s infinite}
+
+@media (prefers-reduced-motion:reduce){
+  .win.show, .toast, .bub, .files li, .vdlg{animation:none}
+  .cursor{transition:none !important}
+  .ripple{animation:none; opacity:0}
+  .vmbar .rec, .typing::after{animation:none}
+}
+</style>
+</head>
+<body>
+<header class="bar">
+  <a class="brand" href="../" title="Volver al showroom">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 20.2 7.25v9.5L12 21.5 3.8 16.75v-9.5Z"/><path d="M12 8.2 15.3 10.1v3.8L12 15.8 8.7 13.9v-3.8Z" opacity=".55"/></svg>
+    IT Solutions
+  </a>
+  <h1>Demo en vivo · Alta de pedido</h1>
+  <span class="sim">Simulación · datos inventados</span>
+  <div class="ctrls">
+    <button class="btn" id="bPause" type="button" title="Atajo: P"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg><span>Pausar</span></button>
+    <button class="btn" id="bSpeed" type="button" aria-label="Velocidad del robot">Velocidad 1×</button>
+    <button class="btn" id="bAuto" type="button" aria-pressed="false" title="La demo avanza sola, sin clics">Modo automático</button>
+    <button class="btn" id="bReset" type="button" title="Atajo: R"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Reiniciar</button>
+  </div>
+</header>
+
+<ol class="steps" id="steps" aria-label="Pasos del proceso"></ol>
+
+<main class="layout">
+  <section aria-label="Pantalla de la demo">
+    <div class="view">
+      <p class="where" id="where"><span class="dot" id="whereDot"></span><span>Estás viendo: <b id="whereTxt">tu computadora</b></span></p>
+      <button class="btn primary" id="bEnter" type="button" hidden>Entrar a la máquina del robot →</button>
+    </div>
+    <div class="fit" id="fit"><div class="stage" id="stage"></div></div>
+    <p class="mob">Para presentar, ábrela en una computadora: se ve más grande y clara.</p>
+    <p class="note">Simulación con datos inventados. Las pantallas imitan Salesforce, TP Client y Genesys Cloud; no son los sistemas reales.</p>
+  </section>
+
+  <aside class="side" aria-label="Explicación">
+    <div class="card narr" aria-live="polite">
+      <p class="kicker" id="nK">Antes de empezar</p>
+      <h2 id="nT">Así funciona esta demo</h2>
+      <p id="nB">Tú haces la parte de ventas. El robot hace el resto en los sistemas, y aquí te explicamos cada paso.</p>
+      <p class="tip" id="nTip" hidden></p>
+    </div>
+    <div class="card decide" id="decide" hidden>
+      <p class="kicker">Te toca decidir</p>
+      <h2>Autorización de descuento</h2>
+      <p>El robot detuvo el pedido porque el descuento supera la política de la operación.</p>
+      <dl><dt>Descuento pedido</dt><dd id="dAsk"></dd><dt>Política</dt><dd id="dPol"></dd><dt>Total con descuento</dt><dd id="dTot"></dd></dl>
+      <div class="row">
+        <button class="btn primary" id="bApprove" type="button">Autorizar descuento</button>
+        <button class="btn" id="bAdjust" type="button">Ajustar a la política</button>
+      </div>
+      <p class="count" id="dCount" hidden></p>
+    </div>
+    <div class="card logc">
+      <h3>Bitácora del robot <span id="logN">0 acciones</span></h3>
+      <ol class="log" id="log"><li class="empty">Aquí aparece cada acción que hace el robot, con su hora.</li></ol>
+    </div>
+  </aside>
+</main>
+
+<noscript><p style="padding:20px">Esta demo necesita JavaScript activado.</p></noscript>
+
+<script>
+(() => {
+'use strict';
+/* ===== Datos de la demo (todo inventado). Ajusta aquí la política de descuento por operación. ===== */
+const POLICY_MAX = 10;              // % de descuento que se aprueba sin autorización
+const SAMPLE_PCT = 20;              // % de llamadas que pasan a calidad (EMA)
+const CASE_ID = '00412873', CLIENT_ID = 'CL-20931', ORDER_ID = 'PED-' + new Date().getFullYear() + '-08812';
+const CUSTOMER = 'Distribuidora Aurora S.A. de C.V.', CONTACT = 'Mariana Ruiz', PHONE = '+52 55 4821 0937', EMAIL = 'compras@aurora.mx';
+const BRAND = 'Conecta Telecom';
+const PRODUCTS = {
+  total: { name: 'Paquete Negocio Total (internet + telefonía)', price: 2990 },
+  net:   { name: 'Internet Empresarial 500 Mbps', price: 1890 },
+  voz:   { name: 'Telefonía en la nube · 10 líneas', price: 1450 },
+};
+const CREDIT_LINE = 500000;
+const STEPS = [
+  { b: 'Captura',          s: 'Salesforce' },
+  { b: 'Validación',       s: 'Salesforce' },
+  { b: 'Autorización',     s: 'Ventas' },
+  { b: 'Estatus y alerta', s: 'TP Client' },
+  { b: 'Registro',         s: 'Salesforce' },
+  { b: 'Aviso al cliente', s: 'Genesys Cloud' },
+  { b: 'Calidad',          s: 'EMA' },
+];
+const NARR = {
+  1: ['Paso 1 · Tú', 'Captura el pedido en Salesforce', 'Eres ejecutivo de ventas. Acabas de cerrar una venta con Distribuidora Aurora: elige el paquete, las sucursales, el plazo y el descuento, y guarda. Es lo único que se hace a mano.', `Política de esta operación: hasta ${POLICY_MAX} % de descuento sin autorización. Elige más para ver qué hace el robot con una excepción.`],
+  2: ['Paso 2 · Robot', 'El robot valida el pedido', 'Desde su propia máquina, el robot entra a Salesforce, busca el caso y revisa los datos del cliente, el crédito y el descuento. Hace lo mismo que haría una persona, sin saltarse pasos.'],
+  3: ['Paso 3 · Tú', 'El robot se detiene y te pregunta', 'El descuento pasa la política de la operación. El robot no decide por su cuenta: detiene el pedido y pide autorización. Las excepciones siempre las decide una persona.'],
+  '3skip': ['Paso 3', 'No hace falta autorización', 'El descuento está dentro de la política, así que el robot sigue sin detenerse.'],
+  4: ['Paso 4 · Robot', 'Actualiza el estatus en TP Client', 'El robot abre TP Client, busca al cliente, cambia su estatus a "cliente activo" y manda una alerta al equipo de instalaciones.'],
+  5: ['Paso 5 · Robot', 'Registra el pedido en Salesforce', 'De vuelta en Salesforce, el robot registra el pedido. El caso queda con número de pedido y en estado "Pedido registrado".'],
+  6: ['Paso 6 · Robot', 'Avisa al cliente desde Genesys Cloud', 'El robot envía la confirmación al cliente por SMS desde Genesys Cloud, con el número de pedido.'],
+  7: ['Paso 7 · Robot de calidad', 'Muestra de calidad para EMA', `Al final del día, otro robot toma las transcripciones de las llamadas, elige una muestra del ${SAMPLE_PCT} % con un desarrollo en Python y la deja en la carpeta que se sube a EMA para revisar la calidad.`],
+  done: ['Listo', 'Pedido completado', 'Tú capturaste el pedido y tomaste la decisión. El robot hizo todo lo demás en tres sistemas y dejó registro de cada acción.'],
+};
+
+/* ===== utilidades ===== */
+const $ = (s, r = document) => r.querySelector(s);
+const money = n => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const stage = $('#stage'), fitEl = $('#fit');
+let S, token = 0, paused = false, speed = 1, auto = false, scale = 1, cur = { x: 640, y: 400 };
+class Cancel extends Error {}
+
+function fresh() { return { prod: 'total', qty: 3, plazo: 24, disc: POLICY_MAX, exc: false, decided: null, robotMs: 0, actions: 0, clock: null, phase: 'intro' }; }
+function calc() {
+  const p = PRODUCTS[S.prod], sub = p.price * S.qty, off = Math.round(sub * S.disc / 100), mon = sub - off;
+  return { p, sub, off, mon, contract: mon * S.plazo };
+}
+function startDate() { const d = new Date(); d.setDate(d.getDate() + 14); return d.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+function hhmmss(d) { return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }); }
+
+/* espera que respeta pausa, velocidad y reinicio */
+function wait(ms, robot = true) {
+  const my = token;
+  if (robot && S) S.robotMs += ms;
+  return new Promise((res, rej) => {
+    let left = ms, last = performance.now();
+    (function tick() {
+      if (my !== token) return rej(new Cancel());
+      const now = performance.now();
+      if (!paused) left -= (now - last) * speed;
+      last = now;
+      if (left <= 0) return res();
+      setTimeout(tick, 40);
+    })();
+  });
+}
+
+/* ===== escala del escenario 1280x800 ===== */
+function fit() {
+  const w = fitEl.parentElement.clientWidth, sW = w / 1280;
+  let s = sW;
+  if (innerWidth >= 1100) {
+    const top = fitEl.getBoundingClientRect().top + scrollY;
+    const sH = (innerHeight - top - 44) / 800;
+    if (sH < sW) s = Math.max(sH, Math.min(sW, .75));
+  }
+  scale = s;
+  stage.style.transform = `scale(${s})`;
+  fitEl.style.height = Math.round(800 * s) + 'px';
+  fitEl.style.width = Math.round(1280 * s) + 'px';
+}
+addEventListener('resize', fit);
+
+/* ===== pasos ===== */
+function renderSteps() {
+  $('#steps').innerHTML = STEPS.map((x, i) => `<li class="st" id="st${i + 1}" data-s="pending"><span class="n">${i + 1}</span><span class="t"><b>${x.b}</b><small>${x.s}</small></span></li>`).join('');
+}
+function step(i, s) { const el = $('#st' + i); if (el) { el.dataset.s = s; if (s === 'active' || s === 'alert') el.setAttribute('aria-current', 'step'); else el.removeAttribute('aria-current'); } }
+function narrate(k) {
+  const n = NARR[k];
+  $('#nK').textContent = n[0]; $('#nT').textContent = n[1]; $('#nB').textContent = n[2];
+  const tip = $('#nTip'); tip.hidden = !n[3]; tip.textContent = n[3] || '';
+}
+
+/* ===== bitácora ===== */
+function log(text, kind = '') {
+  const ul = $('#log'); const e = ul.querySelector('.empty'); if (e) e.remove();
+  if (!S.clock) S.clock = new Date();
+  const t = new Date(S.clock.getTime() + S.robotMs);
+  const li = document.createElement('li'); if (kind) li.className = kind;
+  li.innerHTML = `<time>${hhmmss(t)}</time>`; const sp = document.createElement('span'); sp.textContent = text; li.appendChild(sp);
+  ul.appendChild(li); ul.scrollTop = ul.scrollHeight;
+  S.actions++; $('#logN').textContent = S.actions + (S.actions === 1 ? ' acción' : ' acciones');
+}
+
+/* ===== plantillas de pantallas ===== */
+const icoCase = '<svg viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M9 4h6a1 1 0 0 1 1 1v2h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h3V5a1 1 0 0 1 1-1Zm1 3h4V6h-4v1Z"/></svg>';
+const icoSearch = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>';
+function taskbar(vm) {
+  const apps = vm
+    ? [['sf', 'Salesforce', 'SF'], ['tp', 'TP Client', 'TP'], ['gc', 'Genesys Cloud', 'G'], ['q', 'Calidad · EMA', 'Q']]
+    : [['sf', 'Salesforce', 'SF']];
+  return `<div class="task"><span class="ic i-os" aria-hidden="true">⊞</span>${apps.map(a => `<span class="tb" data-app="${a[0]}" id="${vm ? 'tbv' : 'tbp'}-${a[0]}"><i class="ic i-${a[0]}">${a[2]}</i>${a[1]}</span>`).join('')}<span class="clock" id="${vm ? 'clkV' : 'clkP'}"></span></div>`;
+}
+function sfFrame(id, inner, searchId) {
+  return `<div class="win" id="${id}"><div class="titlebar"><i class="ic i-sf">SF</i>Salesforce · ${BRAND} — Ventas<span class="wctl">— ▢ ✕</span></div><div class="wbody"><div class="sf">
+    <div class="sf-g"><div class="sf-brand"><i></i>${BRAND}</div><div class="sf-search" id="${searchId}">${icoSearch}<span class="sf-q" id="${searchId}Q"></span><div class="sf-res" id="${searchId}R" hidden><div id="${searchId}Hit"><span class="sf-ico" style="width:24px;height:24px">${icoCase}</span><span><b>Caso ${CASE_ID}</b> · ${CUSTOMER}</span></div></div></div><span class="sf-user">AR</span></div>
+    <div class="sf-n"><b>Ventas</b><span>Inicio</span><span>Cuentas</span><span class="on">Casos</span><span>Pedidos</span><span>Informes</span></div>
+    <div class="sf-main" id="${id}Main">${inner}</div></div><div class="toast sfx" id="${id}Toast" hidden></div></div></div>`;
+}
+function sfRecordHead(pfx, estado) {
+  return `<div class="sf-head"><span class="sf-ico">${icoCase}</span><div><small>Caso</small><h2>${CASE_ID} · Distribuidora Aurora</h2></div><div class="sf-act"><span>Seguir</span><span>Editar</span><span>Imprimir</span></div>
+  <div class="sf-hl"><div>Estado<b id="${pfx}Estado">${estado}</b></div><div>Prioridad<b>Media</b></div><div>ID de cliente<b>${CLIENT_ID}</b></div><div>Contacto<b>${CONTACT}</b></div><div>Pedido<b id="${pfx}Ped">—</b></div></div></div>
+  <ol class="sf-path" id="${pfx}Path"><li class="cur">Nuevo</li><li>En validación</li><li>Pedido registrado</li><li>Cerrado</li></ol>`;
+}
+function accountCard(pfx) {
+  return `<div class="sfc"><h3>Detalles de la cuenta</h3><dl class="kv">
+    <dt>Cliente</dt><dd id="${pfx}Cli">${CUSTOMER}</dd><dt>RFC</dt><dd id="${pfx}Rfc">DAU190312KQ8</dd><dt>Correo</dt><dd id="${pfx}Mail">${EMAIL}</dd>
+    <dt>Teléfono</dt><dd id="${pfx}Tel">${PHONE}</dd><dt>Línea de crédito</dt><dd id="${pfx}Cred">${money(CREDIT_LINE)}</dd><dt>Ejecutivo</dt><dd>ventas.demo</dd></dl>
+    <ul class="chk" id="${pfx}Chk" hidden><li id="${pfx}C1">RFC con formato válido</li><li id="${pfx}C2">Contacto con correo y teléfono</li><li id="${pfx}C3">Crédito suficiente para el contrato</li><li id="${pfx}C4">Descuento dentro de la política</li></ul></div>`;
+}
+function sellerForm() {
+  const c = calc();
+  return `${sfRecordHead('p', 'Nuevo')}<div class="sf-cols"><form class="sfc" id="orderForm" novalidate><h3>Nuevo pedido</h3><div class="frm">
+    <div class="full"><label for="fProd">Producto</label><select id="fProd">${Object.entries(PRODUCTS).map(([k, v]) => `<option value="${k}"${k === S.prod ? ' selected' : ''}>${v.name} · ${money(v.price)}/mes</option>`).join('')}</select></div>
+    <div><label for="fQty">Sucursales</label><input id="fQty" type="number" min="1" max="10" value="${S.qty}" inputmode="numeric"></div>
+    <div><label for="fPlazo">Plazo</label><select id="fPlazo">${[12, 24, 36].map(n => `<option value="${n}"${n === S.plazo ? ' selected' : ''}>${n} meses</option>`).join('')}</select></div>
+    <div class="full"><span class="lb" id="discLbl">Descuento</span><div class="chips" role="radiogroup" aria-labelledby="discLbl">${[0, 5, 10, 15, 20].map(n => `<label><input type="radio" name="disc" value="${n}"${n === S.disc ? ' checked' : ''}><span>${n} %</span></label>`).join('')}</div></div>
+    <p class="pol">Política de la operación: <b>hasta ${POLICY_MAX} %</b> sin autorización. Inicio del servicio: ${startDate()}.</p>
+    <dl class="tot" id="tot">${totHTML(c)}</dl>
+    <button class="sf-btn" id="fSave" type="submit">Guardar y enviar al robot</button></div></form>${accountCard('p')}</div>`;
+}
+function totHTML(c) {
+  return `<dt>Mensualidad (${S.qty} × ${money(c.p.price)})</dt><dd>${money(c.sub)}</dd><dt>Descuento ${S.disc} %</dt><dd>− ${money(c.off)}</dd><dt class="big">Mensualidad con descuento</dt><dd class="big">${money(c.mon)}</dd><dt>Total del contrato (${S.plazo} meses)</dt><dd>${money(c.contract)}</dd>`;
+}
+function botRecord() {
+  const c = calc();
+  return `${sfRecordHead('b', 'Nuevo')}<div class="sf-cols"><div class="sfc"><h3>Pedido capturado por ventas</h3><div class="frm">
+    <div class="full"><span class="lb">Producto</span><div class="ro" id="bProd">${c.p.name}</div></div>
+    <div><span class="lb">Sucursales</span><div class="ro" id="bQty">${S.qty}</div></div>
+    <div><span class="lb">Plazo</span><div class="ro" id="bPlazo">${S.plazo} meses</div></div>
+    <div><span class="lb">Descuento</span><div class="ro" id="bDisc">${S.disc} %</div></div>
+    <div><span class="lb">Inicio del servicio</span><div class="ro">${startDate()}</div></div>
+    <dl class="tot" id="bTot">${totHTML(c)}</dl>
+    <button class="sf-btn" id="bReg" type="button" tabindex="-1" disabled>Registrar pedido</button></div></div>${accountCard('b')}</div>`;
+}
+function tpWin() {
+  return `<div class="win" id="wTp" hidden><div class="titlebar"><i class="ic i-tp">TP</i>TP Client — Gestión de clientes<span class="wctl">— ▢ ✕</span></div><div class="wbody"><div class="tp">
+    <div class="tp-top"><b>TP <em>Client</em></b><span>Operación: Ventas Empresas · ${BRAND}</span><span class="u">BOT-VENTAS-01</span></div>
+    <div class="tp-w"><nav class="tp-nav"><span class="on">Clientes</span><span>Casos</span><span>Alertas</span><span>Seguimiento</span><span>Reportes</span></nav>
+    <section class="tp-m"><div class="tp-s"><div><label>ID de cliente</label><span class="tp-in" id="tpQ"></span></div><button class="tp-btn" id="tpFind" type="button" tabindex="-1">Buscar</button><button class="tp-btn alt" type="button" tabindex="-1">Limpiar</button></div>
+    <div class="tp-c" id="tpCard" hidden><div><h3>${CUSTOMER}</h3><div class="id">${CLIENT_ID} · Alta: hoy · Ejecutivo: ventas.demo</div>
+      <dl class="tp-f"><dt>Estatus</dt><dd><span class="dd" id="tpDD"><span id="tpStatus"><span class="pill pros">Prospecto</span></span><span class="dd-l" id="tpList" hidden><div>Prospecto</div><div id="tpOpt">Cliente activo · pedido en proceso</div><div>Suspendido</div></span></span></dd>
+      <dt>Producto</dt><dd id="tpProd"></dd><dt>Sucursales</dt><dd id="tpQty"></dd><dt>Última actualización</dt><dd id="tpUpd">hace 2 días · ventas.demo</dd></dl></div>
+      <div class="tp-al"><b>Enviar alerta</b><span>Para: <strong>Equipo de instalaciones</strong></span><div class="msg" id="tpMsg"></div><button class="tp-btn" id="tpAlert" type="button" tabindex="-1" style="align-self:flex-end">Enviar alerta</button></div></div>
+    <div class="tp-h" id="tpHist" hidden><h4>Historial del cliente</h4><table><thead><tr><th>Cuándo</th><th>Evento</th><th>Usuario</th></tr></thead><tbody id="tpRows">
+      <tr><td>hace 2 días</td><td>Prospecto creado desde Salesforce</td><td>ventas.demo</td></tr>
+      <tr><td>hace 2 días</td><td>Llamada de presentación · 6:12 min</td><td>ventas.demo</td></tr></tbody></table></div>
+    </section></div></div><div class="toast" id="tpToast" hidden></div></div></div>`;
+}
+function gcWin() {
+  return `<div class="win" id="wGc" hidden><div class="titlebar"><i class="ic i-gc">G</i>Genesys Cloud — Espacio de trabajo<span class="wctl">— ▢ ✕</span></div><div class="wbody"><div class="gc">
+    <div class="gc-rail"><i class="on"></i><i></i><i></i><i></i></div>
+    <div class="gc-col"><div class="gc-top"><b>Genesys Cloud</b><span>Interacciones</span><span class="av">Disponible · BOT-VENTAS-01</span></div>
+    <div class="gc-m"><div class="gc-p"><h3>Nueva interacción saliente</h3>
+      <div><div class="lb">Canal</div><div class="gc-ch"><span>Voz</span><span id="gcSms">SMS</span><span>Correo</span></div></div>
+      <div><div class="lb">Para</div><div class="gc-v">${CONTACT} · ${PHONE}</div></div>
+      <div><div class="lb">Plantilla</div><div class="gc-v" id="gcTpl">Selecciona…</div></div>
+      <div><div class="lb">Mensaje</div><div class="gc-msg" id="gcMsg"></div></div>
+      <button class="gc-send" id="gcSend" type="button" tabindex="-1">Enviar</button></div>
+      <div class="gc-p"><h3>Conversación con ${CONTACT}</h3><div class="thread" id="gcThread"><span class="empty">Sin mensajes todavía</span></div></div></div></div></div></div></div>`;
+}
+function qWin() {
+  const calls = ['0412 · Soporte · 4:32', '0415 · Ventas · 7:05', '0418 · Ventas · 6:12', '0421 · Cobranza · 3:48', '0423 · Ventas · 9:20', '0426 · Soporte · 5:10', '0429 · Ventas · 2:55', '0431 · Distribuidora Aurora · 8:41', '0434 · Cobranza · 4:02', '0437 · Soporte · 6:30'];
+  return `<div class="win" id="wQ" hidden><div class="titlebar"><i class="ic i-q">Q</i>Proceso de calidad — muestra para EMA<span class="wctl">— ▢ ✕</span></div><div class="wbody"><div class="qa">
+    <div class="qa-h"><h3>Calidad · fin del día</h3><span>Corre aparte, después de los pedidos</span></div>
+    <div class="qa-g">
+      <div class="qa-b"><h4>1. Transcripciones de hoy</h4><p class="sub">Repositorio de la operación · 10 llamadas</p><div class="calls" id="qCalls">${calls.map((c, i) => `<div class="call" id="qc${i}"><b>Llamada ${c.split(' · ')[0]}</b>${c.split(' · ').slice(1).join(' · ')} min</div>`).join('')}</div>
+        <div class="py"><span>muestreo.py --porcentaje ${SAMPLE_PCT}</span><button type="button" id="qRun" tabindex="-1">Ejecutar</button></div></div>
+      <div class="qa-b"><h4>2. Carpeta destino</h4><div class="path">\\\\calidad\\ema\\entrada\\${new Date().toISOString().slice(0, 10)}</div><ul class="files" id="qFiles"><li class="empty">Vacía</li></ul><button class="qa-btn" id="qUp" type="button" tabindex="-1">Subir a EMA</button></div>
+      <div class="qa-b"><h4>3. EMA</h4><p class="sub">Evaluación de calidad</p><div class="ema"><b id="qN">0</b><span id="qTxt">transcripciones recibidas</span></div></div>
+    </div><p class="qa-n">Solo se sube una parte de las llamadas, la muestra, para revisar la calidad sin cargar todas.</p></div></div></div>`;
+}
+function renderStage() {
+  stage.innerHTML = `
+  <div class="scene scene-pc" id="scPc"><div class="wall wall-pc"><span class="mark">Tu computadora · Ventas</span></div>${sfFrame('wSfP', sellerForm(), 'sp')}${taskbar(false)}</div>
+  <div class="scene scene-vm" id="scVm" hidden><div class="vmbar"><span class="rec" aria-hidden="true"></span>Conexión remota · BOT-VENTAS-01 · <b id="vmState">Robot trabajando</b></div>
+    <div class="wall wall-vm"><span class="mark">Máquina virtual · BOT-VENTAS-01</span></div>
+    ${sfFrame('wSf', '<div class="sf-home">Inicio de Salesforce · busca un caso para empezar</div>', 'bs')}${tpWin()}${gcWin()}${qWin()}
+    <div class="vdlg" id="vDlg" hidden><header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>Tarea detenida · regla de negocio</header><div id="vDlgB"></div></div>
+    ${taskbar(true)}</div>
+  <div class="cursor" id="cursor" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 2.5v17l4.6-4.3 3.2 6.6 3-1.5-3.2-6.4h6.4Z" fill="#fff" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/></svg><span>Robot</span></div>
+  <div class="ov" id="ovIntro"><div class="ovc"><p class="kicker">Tu papel en esta demo</p><h2>Eres ejecutivo de ventas y acabas de cerrar una venta</h2>
+    <p>Tu cliente, Distribuidora Aurora, contrató servicios para sus sucursales. Esto es lo que va a pasar:</p>
+    <ol><li><b>Tú</b> capturas el pedido en Salesforce.</li><li><b>El robot</b> lo toma y lo termina en Salesforce, TP Client y Genesys Cloud.</li><li>Si algo sale de la política, <b>el robot se detiene y te pregunta</b>.</li></ol>
+    <div class="acts"><button class="btn primary big" id="bStart" type="button">Empezar</button><span class="hint" style="margin:0">o activa “Modo automático” para que avance sola.</span></div></div></div>
+  <div class="ov" id="ovHand" hidden><div class="ovc"><p class="kicker">Pedido guardado</p><h2>El robot BOT-VENTAS-01 ya tomó tu pedido</h2><p>Trabaja en su propia computadora, una máquina virtual. Puedes entrar y ver lo que hace en tiempo real.</p>
+    <div class="acts"><button class="btn primary big" id="bEnter2" type="button">Entrar a la máquina del robot →</button></div></div></div>
+  <div class="ov" id="ovDone" hidden><div class="ovc"><p class="kicker">Proceso terminado</p><h2>Pedido completado</h2><p id="doneP"></p>
+    <div class="kpis"><div class="kpi"><b id="kTime"></b><span>trabajo del robot</span></div><div class="kpi"><b>~15 min</b><span>si se hiciera a mano (estimado)</span></div>
+      <div class="kpi"><b>3 + EMA</b><span>Salesforce, TP Client, Genesys Cloud y calidad</span></div><div class="kpi"><b id="kHuman"></b><span id="kHumanL">decisiones de una persona</span></div></div>
+    <div class="acts"><button class="btn primary big" id="bAgain" type="button">Repetir con otro descuento</button><a class="btn big" href="../">Volver al showroom</a></div><p class="hint">Cifras de ejemplo, simuladas.</p></div></div>`;
+  bindSeller();
+  tick();
+}
+
+/* ===== reloj de las barras de tareas ===== */
+function tick() {
+  const t = hhmmss(S.clock ? new Date(S.clock.getTime() + S.robotMs) : new Date()).slice(0, 5);
+  ['#clkP', '#clkV'].forEach(id => { const el = $(id); if (el) el.textContent = t; });
+}
+setInterval(() => S && tick(), 1000);
+
+/* ===== formulario de ventas ===== */
+function bindSeller() {
+  const form = $('#orderForm');
+  const upd = () => { $('#tot').innerHTML = totHTML(calc()); };
+  $('#fProd').addEventListener('change', e => { S.prod = e.target.value; upd(); });
+  $('#fQty').addEventListener('input', e => { const v = Math.max(1, Math.min(10, parseInt(e.target.value, 10) || 1)); S.qty = v; upd(); });
+  $('#fQty').addEventListener('blur', e => { e.target.value = S.qty; });
+  $('#fPlazo').addEventListener('change', e => { S.plazo = +e.target.value; upd(); });
+  form.querySelectorAll('input[name=disc]').forEach(r => r.addEventListener('change', e => { S.disc = +e.target.value; upd(); }));
+  form.addEventListener('submit', e => { e.preventDefault(); submitOrder(); });
+  $('#bStart').addEventListener('click', start);
+  $('#bEnter2').addEventListener('click', enterVM);
+  $('#bAgain').addEventListener('click', () => reset(true));
+}
+
+/* ===== flujo ===== */
+function start() {
+  $('#ovIntro').hidden = true; S.phase = 'capture';
+  step(1, 'active'); narrate(1);
+  if (auto) autoCapture(); else $('#fProd').focus();
+}
+async function autoCapture() {
+  try {
+    const my = token;
+    await wait(1600, false);
+    S.disc = 15; const r = $('input[name=disc][value="15"]'); if (r) r.checked = true; $('#tot').innerHTML = totHTML(calc());
+    await wait(2200, false);
+    if (my === token && S.phase === 'capture') submitOrder();
+  } catch (e) { if (!(e instanceof Cancel)) throw e; }
+}
+function submitOrder() {
+  if (S.phase !== 'capture') return;
+  S.phase = 'handoff';
+  const b = $('#fSave'); b.disabled = true; b.textContent = 'Pedido guardado ✓';
+  $('#wSfPToast').textContent = 'Pedido guardado en el caso ' + CASE_ID; $('#wSfPToast').hidden = false;
+  step(1, 'done');
+  S.clock = new Date();
+  log('Ventas guardó el pedido en el caso ' + CASE_ID, 'ok');
+  setTimeout(() => { if (S.phase !== 'handoff') return; $('#ovHand').hidden = false; $('#bEnter').hidden = false; $('#bEnter2').focus(); if (auto) wait(2200, false).then(() => S.phase === 'handoff' && enterVM()).catch(() => {}); }, 700);
+}
+function enterVM() {
+  if (S.phase !== 'handoff') return;
+  S.phase = 'robot';
+  $('#ovHand').hidden = true; $('#bEnter').hidden = true;
+  $('#scPc').hidden = true; $('#scVm').hidden = false; $('#cursor').hidden = false;
+  $('#whereTxt').textContent = 'la máquina del robot (BOT-VENTAS-01)'; $('#whereDot').classList.add('bot');
+  setCursor(640, 400, 0);
+  runRobot().catch(e => { if (!(e instanceof Cancel)) throw e; });
+}
+
+/* ===== acciones del robot ===== */
+function setCursor(x, y, d) { const c = $('#cursor'); c.style.transitionDuration = (reduce ? 0 : d / speed) + 'ms'; c.style.transform = `translate(${x}px,${y}px)`; cur = { x, y }; }
+function pt(el, fx = .5, fy = .55) {
+  const r = el.getBoundingClientRect(), s = stage.getBoundingClientRect();
+  return { x: (r.left - s.left + r.width * fx) / scale, y: (r.top - s.top + r.height * fy) / scale };
+}
+async function moveTo(el, fx, fy) {
+  if (typeof el === 'string') el = $(el);
+  const p = pt(el, fx, fy), d = Math.hypot(p.x - cur.x, p.y - cur.y);
+  const dur = Math.max(320, Math.min(1100, 260 + d * .9));
+  setCursor(p.x, p.y, dur);
+  await wait(dur + 80);
+}
+async function click(el) {
+  if (typeof el === 'string') el = $(el);
+  const r = document.createElement('span'); r.className = 'ripple'; r.style.left = cur.x + 'px'; r.style.top = cur.y + 'px'; stage.appendChild(r);
+  setTimeout(() => r.remove(), 600);
+  el.classList.add('press'); await wait(170); el.classList.remove('press');
+}
+async function typeIn(el, text, cps = 18) {
+  if (typeof el === 'string') el = $(el);
+  el.textContent = ''; el.classList.add('typing');
+  for (const ch of text) { el.textContent += ch; await wait(1000 / cps); }
+  el.classList.remove('typing');
+}
+async function read(el, ms = 650) {
+  if (typeof el === 'string') el = $(el);
+  await moveTo(el, .85, .55); el.classList.add('reading'); await wait(ms); el.classList.remove('reading');
+}
+async function openApp(app) {
+  const tb = $('#tbv-' + app);
+  await moveTo(tb); await click(tb);
+  document.querySelectorAll('#scVm .tb').forEach(t => t.classList.toggle('on', t === tb));
+  const map = { sf: '#wSf', tp: '#wTp', gc: '#wGc', q: '#wQ' };
+  Object.values(map).forEach(id => { const w = $(id); w.hidden = id !== map[app]; w.classList.remove('show'); });
+  const w = $(map[app]); void w.offsetWidth; w.classList.add('show');
+  await wait(450);
+}
+function toast(id, text, ms = 2200) { const t = $(id); t.textContent = text; t.hidden = false; setTimeout(() => { t.hidden = true; }, ms / speed); }
+function tpRow(ev) { const tr = document.createElement('tr'); tr.className = 'new'; tr.innerHTML = '<td>ahora</td><td></td><td>BOT-VENTAS-01</td>'; tr.children[1].textContent = ev; $('#tpRows').prepend(tr); }
+function setPath(pfx, i) { $('#' + pfx + 'Path').querySelectorAll('li').forEach((li, k) => { li.className = k < i ? 'done' : k === i ? 'cur' : ''; }); }
+
+async function runRobot() {
+  const c0 = calc();
+  /* Paso 2 · Validación en Salesforce */
+  step(2, 'active'); narrate(2);
+  log('BOT-VENTAS-01 tomó la tarea "Alta de pedido"');
+  await wait(500);
+  await openApp('sf');
+  await moveTo('#bs'); await click('#bs');
+  await typeIn('#bsQ', CASE_ID);
+  $('#bsR').hidden = false; await wait(350);
+  await moveTo('#bsHit'); $('#bsHit').classList.add('hl'); await click('#bsHit');
+  $('#bsR').hidden = true; $('#bsQ').textContent = '';
+  $('#wSfMain').innerHTML = botRecord();
+  log('Abrió el caso ' + CASE_ID + ' en Salesforce');
+  await wait(500);
+  setPath('b', 1); $('#bEstado').textContent = 'En validación';
+  log('Cambió el caso a "En validación"');
+  $('#bChk').hidden = false;
+  await read('#bRfc'); $('#bC1').className = 'ok'; log('RFC con formato válido', 'ok');
+  await read('#bMail', 400); await read('#bTel', 400); $('#bC2').className = 'ok'; log('Contacto con correo y teléfono', 'ok');
+  await read('#bCred'); $('#bC3').className = 'ok'; log(`Crédito ${money(CREDIT_LINE)} cubre el contrato de ${money(c0.contract)}`, 'ok');
+  await read('#bDisc', 800);
+  S.exc = S.disc > POLICY_MAX;
+  if (S.exc) { $('#bC4').className = 'bad'; $('#bC4').textContent = `Descuento ${S.disc} % mayor a la política (${POLICY_MAX} %)`; log(`Descuento ${S.disc} % supera la política de ${POLICY_MAX} %`, 'warn'); }
+  else { $('#bC4').className = 'ok'; log(`Descuento ${S.disc} % dentro de la política`, 'ok'); }
+  await wait(500);
+  step(2, 'done');
+
+  /* Paso 3 · Autorización (solo si hace falta) */
+  if (S.exc) {
+    step(3, 'alert'); narrate(3);
+    $('#vmState').textContent = 'En espera de autorización';
+    $('#vDlgB').innerHTML = `El descuento de <b>${S.disc} %</b> supera el límite de la operación (<b>${POLICY_MAX} %</b>).<br>El robot detuvo el pedido ${CASE_ID} y pidió autorización a ventas.`;
+    $('#vDlg').hidden = false;
+    log('Detuvo el pedido y pidió autorización a ventas', 'warn');
+    const choice = await askDecision();
+    $('#vDlg').hidden = true; $('#vmState').textContent = 'Robot trabajando';
+    S.decided = choice;
+    if (choice === 'adjust') {
+      S.disc = POLICY_MAX;
+      $('#bDisc').textContent = S.disc + ' %'; $('#bTot').innerHTML = totHTML(calc());
+      $('#bC4').className = 'ok'; $('#bC4').textContent = `Descuento ajustado a ${POLICY_MAX} %`;
+      log(`Ventas ajustó el descuento a ${POLICY_MAX} %`, 'ok');
+    } else {
+      $('#bC4').className = 'ok'; $('#bC4').textContent = `Descuento ${S.disc} % autorizado por ventas`;
+      log(`Ventas autorizó el descuento de ${S.disc} %`, 'ok');
+    }
+    await wait(600);
+    step(3, 'done');
+  } else {
+    step(3, 'skip'); narrate('3skip'); await wait(1800);
+  }
+  const c = calc();
+
+  /* Paso 4 · TP Client */
+  step(4, 'active'); narrate(4);
+  await openApp('tp');
+  await moveTo('#tpQ'); await click('#tpQ'); await typeIn('#tpQ', CLIENT_ID);
+  await moveTo('#tpFind'); await click('#tpFind');
+  $('#tpProd').textContent = c.p.name; $('#tpQty').textContent = S.qty; $('#tpCard').hidden = false; $('#tpHist').hidden = false;
+  log('Encontró al cliente ' + CLIENT_ID + ' en TP Client');
+  await wait(500);
+  await moveTo('#tpDD'); await click('#tpDD'); $('#tpList').hidden = false; await wait(350);
+  await moveTo('#tpOpt'); $('#tpOpt').classList.add('hl'); await click('#tpOpt');
+  $('#tpList').hidden = true; $('#tpStatus').innerHTML = '<span class="pill act">Cliente activo · pedido en proceso</span>';
+  $('#tpUpd').textContent = 'ahora · BOT-VENTAS-01';
+  tpRow('Estatus: Cliente activo · pedido en proceso');
+  log('Cambió el estatus a "Cliente activo · pedido en proceso"', 'ok');
+  await moveTo('#tpMsg', .1, .4); await click('#tpMsg');
+  await typeIn('#tpMsg', `Nuevo pedido de Distribuidora Aurora: ${S.qty} sucursales, inicio ${startDate()}. Caso ${CASE_ID}.`, 40);
+  await moveTo('#tpAlert'); await click('#tpAlert');
+  toast('#tpToast', '✓ Alerta enviada a Instalaciones');
+  tpRow('Alerta enviada a Instalaciones');
+  log('Envió alerta al equipo de instalaciones', 'ok');
+  await wait(900);
+  step(4, 'done');
+
+  /* Paso 5 · Registro en Salesforce */
+  step(5, 'active'); narrate(5);
+  await openApp('sf');
+  $('#bReg').disabled = false;
+  await moveTo('#bReg'); await click('#bReg');
+  $('#bReg').disabled = true; $('#bReg').textContent = 'Pedido registrado ✓';
+  $('#bPed').textContent = ORDER_ID; $('#bEstado').textContent = 'Pedido registrado'; setPath('b', 2);
+  toast('#wSfToast', '✓ Pedido ' + ORDER_ID + ' creado');
+  log('Registró el pedido ' + ORDER_ID + ' y actualizó el caso', 'ok');
+  await wait(1200);
+  step(5, 'done');
+
+  /* Paso 6 · Genesys Cloud */
+  step(6, 'active'); narrate(6);
+  await openApp('gc');
+  await moveTo('#gcSms'); await click('#gcSms'); $('#gcSms').classList.add('on');
+  await moveTo('#gcTpl'); await click('#gcTpl'); $('#gcTpl').textContent = 'Confirmación de pedido';
+  const msg = `Hola ${CONTACT.split(' ')[0]}, tu pedido ${ORDER_ID} de ${c.p.name} para ${S.qty} sucursales quedó registrado. Te contactaremos para la instalación. — ${BRAND}`;
+  $('#gcMsg').textContent = msg; await read('#gcMsg', 900);
+  await moveTo('#gcSend'); await click('#gcSend');
+  const th = $('#gcThread'); th.innerHTML = '';
+  const bub = document.createElement('div'); bub.className = 'bub'; bub.textContent = msg;
+  const sm = document.createElement('small'); sm.textContent = 'Enviando…'; bub.appendChild(sm); th.appendChild(bub);
+  log('Envió SMS de confirmación a ' + CONTACT);
+  await wait(1000); sm.textContent = 'Entregado ✓';
+  log('Genesys Cloud confirmó la entrega del SMS', 'ok');
+  await wait(900);
+  step(6, 'done');
+
+  /* Paso 7 · Calidad → EMA */
+  step(7, 'active'); narrate(7);
+  await openApp('q');
+  await read('#qCalls', 900);
+  await moveTo('#qRun'); await click('#qRun');
+  log(`Ejecutó el muestreo del ${SAMPLE_PCT} % de las llamadas del día`);
+  const picks = [2, 7];
+  for (const i of picks) { const el = $('#qc' + i); await moveTo(el); el.classList.add('sel'); await wait(450); }
+  log('Seleccionó 2 de 10 transcripciones, incluida la de Distribuidora Aurora', 'ok');
+  const files = $('#qFiles'); files.innerHTML = '';
+  for (const i of picks) { const li = document.createElement('li'); li.textContent = 'llamada-' + $('#qc' + i).querySelector('b').textContent.replace('Llamada ', '') + '.txt'; files.appendChild(li); await wait(500); }
+  log('Copió las transcripciones a la carpeta de EMA', 'ok');
+  await moveTo('#qUp'); await click('#qUp');
+  await wait(600); $('#qN').textContent = '2'; $('#qTxt').textContent = 'transcripciones recibidas ✓';
+  log('EMA recibió las transcripciones para evaluar la calidad', 'ok');
+  await wait(900);
+  step(7, 'done');
+
+  /* Fin */
+  $('#vmState').textContent = 'Tarea completada';
+  narrate('done');
+  S.phase = 'done';
+  const secs = Math.round(S.robotMs / 1000);
+  $('#kTime').textContent = secs >= 60 ? `${Math.floor(secs / 60)} min ${secs % 60} s` : `${secs} s`;
+  $('#kHuman').textContent = S.exc ? '1' : '0'; $('#kHumanL').textContent = S.exc ? 'decisión de una persona (tuya)' : 'decisiones de una persona: no hizo falta';
+  if (!S.exc) $('#nB').textContent = 'Tú capturaste el pedido. El robot hizo todo lo demás en tres sistemas, sin detenerse, y dejó registro de cada acción.';
+  $('#doneP').textContent = S.exc
+    ? `Tú capturaste el pedido y ${S.decided === 'adjust' ? 'ajustaste' : 'autorizaste'} el descuento. El robot hizo todo lo demás y dejó ${S.actions} acciones registradas en la bitácora.`
+    : `Tú capturaste el pedido. El robot hizo todo lo demás, sin detenerse, y dejó ${S.actions} acciones registradas en la bitácora.`;
+  $('#cursor').hidden = true;
+  $('#ovDone').hidden = false; $('#bAgain').focus();
+}
+
+function askDecision() {
+  const my = token, card = $('#decide');
+  $('#dAsk').textContent = S.disc + ' %'; $('#dPol').textContent = 'hasta ' + POLICY_MAX + ' %'; $('#dTot').textContent = money(calc().mon) + ' al mes';
+  $('#bAdjust').textContent = `Ajustar a ${POLICY_MAX} %`;
+  card.hidden = false; $('#bApprove').focus();
+  return new Promise((res, rej) => {
+    let timer = null, left = 6;
+    const done = v => { clearInterval(timer); clearInterval(guard); card.hidden = true; $('#dCount').hidden = true; res(v); };
+    $('#bApprove').onclick = () => done('approve');
+    $('#bAdjust').onclick = () => done('adjust');
+    const guard = setInterval(() => { if (my !== token) { clearInterval(guard); clearInterval(timer); card.hidden = true; rej(new Cancel()); } }, 100);
+    if (auto) {
+      const cnt = $('#dCount'); cnt.hidden = false;
+      const show = () => { cnt.textContent = `Modo automático: se autorizará en ${left} s.`; };
+      show();
+      timer = setInterval(() => { if (paused) return; left--; if (left <= 0) done('approve'); else show(); }, 1000);
+    }
+  });
+}
+
+/* ===== controles ===== */
+function reset(skipIntro) {
+  token++; paused = false; setPauseUI();
+  S = fresh();
+  renderSteps(); renderStage();
+  $('#decide').hidden = true; $('#bEnter').hidden = true;
+  $('#log').innerHTML = '<li class="empty">Aquí aparece cada acción que hace el robot, con su hora.</li>'; $('#logN').textContent = '0 acciones';
+  $('#whereTxt').textContent = 'tu computadora'; $('#whereDot').classList.remove('bot');
+  narrate1Intro();
+  fit();
+  if (skipIntro) start();
+}
+function narrate1Intro() {
+  $('#nK').textContent = 'Antes de empezar'; $('#nT').textContent = 'Así funciona esta demo';
+  $('#nB').textContent = 'Tú haces la parte de ventas. El robot hace el resto en los sistemas, y aquí te explicamos cada paso.';
+  $('#nTip').hidden = true;
+}
+function setPauseUI() {
+  const b = $('#bPause');
+  b.querySelector('span').textContent = paused ? 'Continuar' : 'Pausar';
+  b.querySelector('svg').innerHTML = paused ? '<path d="M7 4v16l13-8z"/>' : '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';
+  b.setAttribute('aria-pressed', paused);
+}
+$('#bPause').addEventListener('click', () => { paused = !paused; setPauseUI(); });
+$('#bSpeed').addEventListener('click', e => { speed = speed === 1 ? 2 : 1; e.currentTarget.textContent = `Velocidad ${speed}×`; });
+$('#bAuto').addEventListener('click', e => {
+  auto = !auto; e.currentTarget.setAttribute('aria-pressed', auto);
+  if (auto && S.phase === 'intro') start();
+  else if (auto && S.phase === 'capture') autoCapture();
+  else if (auto && S.phase === 'handoff') enterVM();
+  else if (auto && !$('#decide').hidden) $('#bApprove').click();
+});
+$('#bReset').addEventListener('click', () => reset(false));
+$('#bEnter').addEventListener('click', enterVM);
+addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if (e.key === 'p' || e.key === 'P') { paused = !paused; setPauseUI(); }
+  if (e.key === 'r' || e.key === 'R') reset(false);
+});
+
+reset(false);
+})();
+</script>
+</body>
+</html>
