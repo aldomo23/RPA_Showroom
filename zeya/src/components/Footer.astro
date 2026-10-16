@@ -1,0 +1,89 @@
+---
+import Logo from "./Logo.astro";
+import Icon from "./Icon.astro";
+import { finalCta, site, locations, nav, isPending } from "../data/site";
+
+const year = new Date().getFullYear();
+---
+
+<section id="contacto" class="relative isolate overflow-hidden bg-vino py-24 text-center text-crema sm:py-32" aria-labelledby="cta-titulo">
+  <svg
+    class="pointer-events-none absolute top-1/2 left-1/2 -z-10 h-[40rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 text-rosa opacity-20"
+    viewBox="0 0 400 400"
+    fill="none"
+    aria-hidden="true"
+  >
+    <circle cx="200" cy="200" r="199" stroke="currentColor" stroke-width="0.6" />
+    <circle cx="200" cy="200" r="140" stroke="currentColor" stroke-width="0.6" />
+  </svg>
+  <div class="container-zeya reveal max-w-3xl">
+    <h2 id="cta-titulo" class="text-4xl text-hueso sm:text-6xl">{finalCta.title}</h2>
+    <p class="mx-auto mt-6 max-w-xl text-lg font-light">{finalCta.text}</p>
+    <a href={site.whatsapp.general} target="_blank" rel="noopener" class="btn btn-crema mt-10">
+      <Icon name="whatsapp" size={18} />
+      {finalCta.cta}
+      <span class="sr-only">(abre WhatsApp en una pestaña nueva)</span>
+    </a>
+  </div>
+</section>
+
+<footer class="bg-vino-oscuro pt-16 pb-28 text-crema sm:pb-16">
+  <div class="container-zeya">
+    <div class="grid gap-12 md:grid-cols-12">
+      <div class="md:col-span-4">
+        <Logo variant="dark" />
+        <p class="mt-5 max-w-xs text-sm font-light">{site.tagline}.</p>
+      </div>
+
+      <nav aria-label="Secciones" class="md:col-span-2">
+        <h2 class="font-sans text-xs font-medium tracking-[0.2em] text-rosa uppercase">Explora</h2>
+        <ul class="mt-4 space-y-1 text-sm">
+          {nav.map((item) => (
+            <li><a href={item.href} class="inline-flex min-h-9 items-center hover:text-hueso hover:underline">{item.label}</a></li>
+          ))}
+        </ul>
+      </nav>
+
+      <div class="md:col-span-3">
+        <h2 class="font-sans text-xs font-medium tracking-[0.2em] text-rosa uppercase">Sedes</h2>
+        <ul class="mt-4 space-y-4 text-sm">
+          {locations.items.map((loc) => (
+            <li>
+              <p class="text-hueso">{loc.city}</p>
+              <p class="mt-1 font-light">{loc.address}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="md:col-span-3">
+        <h2 class="font-sans text-xs font-medium tracking-[0.2em] text-rosa uppercase">Contacto</h2>
+        <ul class="mt-4 space-y-1 text-sm">
+          <li>
+            <a href={site.whatsapp.general} target="_blank" rel="noopener" class="inline-flex min-h-9 items-center gap-2.5 hover:text-hueso hover:underline">
+              <Icon name="whatsapp" size={16} /> WhatsApp
+              <span class="sr-only">(abre en una pestaña nueva)</span>
+            </a>
+          </li>
+          {site.social.map((s) => (
+            <li>
+              <a href={s.url} target="_blank" rel="noopener" class="inline-flex min-h-9 items-center gap-2.5 hover:text-hueso hover:underline">
+                <Icon name="instagram" size={16} /> {s.handle}
+                <span class="sr-only">en {s.label} (abre en una pestaña nueva)</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-14 flex flex-col gap-3 border-t border-crema/15 pt-6 text-xs font-light sm:flex-row sm:items-center sm:justify-between">
+      <p>© {year} {site.fullName}. Todos los derechos reservados.</p>
+      {isPending(site.legal.privacyUrl) ? (
+        <p>{site.legal.privacyLabel} {site.legal.privacyUrl}</p>
+      ) : (
+        <a href={site.legal.privacyUrl} class="hover:text-hueso hover:underline">{site.legal.privacyLabel}</a>
+      )}
+    </div>
+  </div>
+</footer>

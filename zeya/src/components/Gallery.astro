@@ -1,0 +1,54 @@
+---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import SectionHeading from "./SectionHeading.astro";
+import Icon from "./Icon.astro";
+import { gallery, site } from "../data/site";
+
+const files = import.meta.glob<{ default: ImageMetadata }>("../assets/galeria/*.{webp,jpg,jpeg,png}", { eager: true });
+const instagram = site.social.find((s) => s.icon === "instagram")!;
+
+const images = gallery.images.map((img) => {
+  const mod = files[`../assets/galeria/${img.file}`];
+  if (!mod) throw new Error(`No se encontró la imagen src/assets/galeria/${img.file}`);
+  return { ...img, src: mod.default };
+});
+---
+
+<section id="galeria" class="bg-hueso py-24 sm:py-32" aria-labelledby="galeria-titulo">
+  <div class="container-zeya">
+    <div class="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+      <SectionHeading id="galeria-titulo" eyebrow={gallery.eyebrow} title={gallery.title} intro={gallery.intro} />
+      <a href={instagram.url} target="_blank" rel="noopener" class="btn btn-outline-vino reveal shrink-0 self-start md:self-auto">
+        <Icon name="instagram" size={18} />
+        {gallery.cta}
+        <span class="sr-only">(abre Instagram en una pestaña nueva)</span>
+      </a>
+    </div>
+
+    <ul class="mt-14 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
+      {images.map((img, i) => (
+        <li class="reveal" style={`--reveal-delay: ${(i % 3) * 80}ms`}>
+          <a
+            href={instagram.url}
+            target="_blank"
+            rel="noopener"
+            class="group block overflow-hidden rounded-2xl bg-crema"
+          >
+            <Image
+              src={img.src}
+              alt={img.alt}
+              widths={[360, 540, 720]}
+              sizes="(min-width: 768px) 33vw, 50vw"
+              format="webp"
+              loading="lazy"
+              decoding="async"
+              class="aspect-square h-auto w-full object-cover transition-transform duration-700 ease-(--ease-suave) group-hover:scale-[1.03]"
+            />
+            <span class="sr-only">Ver en Instagram {instagram.handle} (abre en una pestaña nueva)</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
