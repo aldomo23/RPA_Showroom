@@ -1,0 +1,104 @@
+---
+import Logo from "./Logo.astro";
+import Icon from "./Icon.astro";
+import { nav, site } from "../data/site";
+---
+
+<header class="fixed inset-x-0 top-0 z-50 border-b border-vino/10 bg-hueso/95 backdrop-blur-sm" data-header>
+  <div class="container-zeya flex h-[4.5rem] items-center justify-between gap-4">
+    <a href="#inicio" class="shrink-0 rounded-sm">
+      <Logo variant="light" />
+      <span class="sr-only">, ir al inicio</span>
+    </a>
+
+    <nav aria-label="Principal" class="hidden lg:block">
+      <ul class="flex items-center gap-9 text-[0.95rem] text-tinta">
+        {nav.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class="relative py-2 transition-colors duration-200 after:absolute after:inset-x-0 after:bottom-0.5 after:h-px after:origin-left after:scale-x-0 after:bg-vino after:transition-transform after:duration-300 hover:text-vino hover:after:scale-x-100"
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <a
+        href={site.whatsapp.general}
+        target="_blank"
+        rel="noopener"
+        class="btn btn-vino hidden min-h-11 px-5 py-2 text-sm sm:inline-flex"
+      >
+        Agenda tu cita
+        <span class="sr-only">(abre WhatsApp en una pestaña nueva)</span>
+      </a>
+      <button
+        type="button"
+        class="inline-flex size-11 cursor-pointer items-center justify-center rounded-full text-vino transition-colors hover:bg-vino/5 lg:hidden"
+        aria-expanded="false"
+        aria-controls="menu-movil"
+        data-menu-toggle
+      >
+        <span class="sr-only" data-menu-label>Abrir menú</span>
+        <span class="block" data-icon-open><Icon name="menu" size={26} /></span>
+        <span class="hidden" data-icon-close><Icon name="close" size={26} /></span>
+      </button>
+    </div>
+  </div>
+
+  <div id="menu-movil" class="border-t border-vino/10 bg-hueso lg:hidden" hidden data-menu>
+    <nav aria-label="Menú móvil" class="container-zeya py-6">
+      <ul class="flex flex-col">
+        {nav.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class="flex min-h-12 items-center border-b border-vino/10 font-serif text-2xl text-vino"
+              data-menu-link
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+      <a href={site.whatsapp.general} target="_blank" rel="noopener" class="btn btn-vino mt-6 w-full" data-menu-link>
+        <Icon name="whatsapp" size={18} />
+        Agenda tu cita
+        <span class="sr-only">(abre WhatsApp en una pestaña nueva)</span>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>("[data-menu-toggle]");
+  const menu = document.querySelector<HTMLElement>("[data-menu]");
+  const label = toggle?.querySelector("[data-menu-label]");
+  const iconOpen = toggle?.querySelector("[data-icon-open]");
+  const iconClose = toggle?.querySelector("[data-icon-close]");
+
+  function setOpen(open: boolean) {
+    if (!toggle || !menu) return;
+    toggle.setAttribute("aria-expanded", String(open));
+    menu.hidden = !open;
+    if (label) label.textContent = open ? "Cerrar menú" : "Abrir menú";
+    iconOpen?.classList.toggle("hidden", open);
+    iconOpen?.classList.toggle("block", !open);
+    iconClose?.classList.toggle("hidden", !open);
+    iconClose?.classList.toggle("block", open);
+  }
+
+  toggle?.addEventListener("click", () => setOpen(toggle.getAttribute("aria-expanded") !== "true"));
+  menu?.querySelectorAll("[data-menu-link]").forEach((link) => link.addEventListener("click", () => setOpen(false)));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && toggle?.getAttribute("aria-expanded") === "true") {
+      setOpen(false);
+      toggle.focus();
+    }
+  });
+  window.matchMedia("(min-width: 1024px)").addEventListener("change", (e) => e.matches && setOpen(false));
+</script>

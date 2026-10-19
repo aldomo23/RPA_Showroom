@@ -1,0 +1,36 @@
+---
+/**
+ * Logo de ZEYA. Usa el archivo de /public/brand/ indicado en site.brand.
+ * Mientras esté [PENDIENTE] muestra el nombre en texto como marcador provisional
+ * (no es una recreación del logo).
+ */
+import { site, isPending } from "../data/site";
+
+interface Props {
+  variant?: "light" | "dark"; // light = sobre fondo claro, dark = sobre fondo vino
+  class?: string;
+}
+const { variant = "light", class: className = "" } = Astro.props;
+const { logo, logoOnDark, logoWidth, logoHeight } = site.brand;
+const src = variant === "dark" && !isPending(logoOnDark) ? logoOnDark : logo;
+const hasLogo = !isPending(src);
+const color = variant === "dark" ? "text-crema" : "text-vino";
+---
+
+{hasLogo ? (
+  <img
+    src={src}
+    alt={site.fullName}
+    width={logoWidth}
+    height={logoHeight}
+    class:list={["h-10 w-auto sm:h-11", className]}
+    decoding="async"
+  />
+) : (
+  <span class:list={["inline-flex flex-col leading-none", color, className]} data-pendiente="logo">
+    <span class="font-serif text-[1.85rem] font-medium tracking-[0.22em]">{site.name}</span>{" "}
+    <span class="mt-1 font-sans text-[0.6rem] font-medium tracking-[0.28em] uppercase opacity-90">
+      Armonización Orofacial
+    </span>
+  </span>
+)}

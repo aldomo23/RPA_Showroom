@@ -1,0 +1,46 @@
+---
+import SectionHeading from "./SectionHeading.astro";
+import Icon from "./Icon.astro";
+import { treatments, whatsappLink } from "../data/site";
+---
+
+<section id="tratamientos" class="bg-vino py-24 text-crema sm:py-32" aria-labelledby="tratamientos-titulo">
+  <div class="container-zeya">
+    <SectionHeading
+      id="tratamientos-titulo"
+      eyebrow={treatments.eyebrow}
+      title={treatments.title}
+      intro={treatments.intro}
+      tone="dark"
+    />
+
+    <ul class="mt-16 grid gap-5 md:grid-cols-2 lg:gap-6">
+      {treatments.items.map((item, i) => (
+        <li
+          class="reveal group flex flex-col rounded-[1.75rem] bg-hueso p-7 text-tinta transition-transform duration-300 ease-(--ease-suave) hover:-translate-y-1 sm:p-10"
+          style={`--reveal-delay: ${(i % 2) * 100}ms`}
+        >
+          <p class="font-serif text-sm text-vino/80 italic">0{i + 1}</p>
+          <h3 class="mt-2 text-[2rem] text-vino sm:text-4xl">{item.name}</h3>
+          <p class="mt-4 text-tinta-suave">{item.description}</p>
+          <div class="mt-6 border-t border-vino/15 pt-5">
+            <p class="text-xs font-medium tracking-[0.2em] text-vino uppercase">Ideal para ti</p>
+            <p class="mt-2 text-tinta-suave">{item.idealFor}</p>
+          </div>
+          <div class="mt-auto pt-8">
+            <a
+              href={whatsappLink(item.whatsappMessage)}
+              target="_blank"
+              rel="noopener"
+              class="btn btn-outline-vino w-full sm:w-auto"
+            >
+              <Icon name="whatsapp" size={18} />
+              {treatments.ctaLabel}
+              <span class="sr-only">sobre {item.name} (abre WhatsApp en una pestaña nueva)</span>
+            </a>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
