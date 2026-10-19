@@ -39,6 +39,7 @@ button{font:inherit; color:inherit}
 .btn:hover{background:#f0f2f5; border-color:#c9cfd6}
 .btn svg{width:16px; height:16px}
 .btn[aria-pressed="true"]{background:var(--ink); color:#fff; border-color:var(--ink)}
+#bVoice[aria-pressed="false"] svg path:last-child{display:none}
 .btn.primary{background:var(--ink); color:#fff; border-color:var(--ink)}
 .btn.primary:hover{background:#2b3442}
 .btn.big{min-height:52px; padding:12px 22px; font-size:17px; border-radius:12px}
@@ -343,6 +344,7 @@ button{font:inherit; color:inherit}
   <span class="sim">Simulación · datos inventados</span>
   <div class="ctrls">
     <button class="btn" id="bPause" type="button" title="Atajo: P"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg><span>Pausar</span></button>
+    <button class="btn" id="bVoice" type="button" aria-pressed="true" title="Narración por paso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><span>Voz</span></button>
     <button class="btn" id="bSpeed" type="button" aria-label="Velocidad del robot">Velocidad 1×</button>
     <button class="btn" id="bAuto" type="button" aria-pressed="false" title="La demo avanza sola, sin clics">Modo automático</button>
     <button class="btn" id="bReset" type="button" title="Atajo: R"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Reiniciar</button>
@@ -457,6 +459,29 @@ function wait(ms, robot = true) {
     })();
   });
 }
+
+/* ===== voz: un audio por paso; el robot espera a que termine antes de avanzar ===== */
+const VOICES = ['voz-01-captura', 'voz-02-maquina', 'voz-03-validacion', 'voz-04a-autorizacion', 'voz-04b-sin-excepcion', 'voz-05-tpclient', 'voz-06-registro', 'voz-07-aviso', 'voz-08-calidad', 'voz-09-cierre'];
+let voiceOn = true, vchain = Promise.resolve(), vgen = 0, vcur = null;
+const vcache = {};
+function vaudio(n) { if (!vcache[n]) { const a = new Audio('audio/' + n + '.mp3'); a.preload = 'auto'; vcache[n] = a; } return vcache[n]; }
+function stopVoice() { vgen++; vchain = Promise.resolve(); if (vcur) { const c = vcur; vcur = null; c.a.pause(); c.fin(); } }
+function say(n, interrupt) {
+  if (!voiceOn) return Promise.resolve();
+  if (interrupt) stopVoice();
+  const g = vgen;
+  const p = vchain.then(() => new Promise(res => {
+    if (!voiceOn || g !== vgen) return res();
+    const a = vaudio(n); try { a.currentTime = 0; } catch (e) {}
+    const me = { a };
+    me.fin = () => { a.onended = a.onerror = null; if (vcur === me) vcur = null; res(); };
+    vcur = me; a.onended = me.fin; a.onerror = me.fin;
+    if (!paused) { const pr = a.play(); if (pr && pr.catch) pr.catch(me.fin); }
+  }));
+  vchain = p;
+  return p;
+}
+function vwait(p) { const my = token; return p.then(() => { if (my !== token) throw new Cancel(); }); }
 
 /* ===== escala del escenario 1280x800 ===== */
 function fit() {
@@ -596,7 +621,7 @@ function renderStage() {
   <div class="ov" id="ovIntro"><div class="ovc"><p class="kicker">Tu papel en esta demo</p><h2>Eres ejecutivo de ventas y acabas de cerrar una venta</h2>
     <p>Tu cliente, Distribuidora Aurora, contrató servicios para sus sucursales. Esto es lo que va a pasar:</p>
     <ol><li><b>Tú</b> capturas el pedido en el CRM del cliente.</li><li><b>El robot</b> lo toma y lo termina en el CRM, TP Client y Genesys Cloud.</li><li>Si algo sale de la política, <b>el robot se detiene y te pregunta</b>.</li></ol>
-    <div class="acts"><button class="btn primary big" id="bStart" type="button">Empezar</button><span class="hint" style="margin:0">o activa “Modo automático” para que avance sola.</span></div></div></div>
+    <div class="acts"><button class="btn primary big" id="bStart" type="button">Empezar</button><span class="hint" style="margin:0">o activa “Modo automático” para que avance sola.</span></div><p class="hint">La demo tiene narración: sube el volumen. Si presentas por Teams o Meet, comparte también el sonido de tu equipo.</p></div></div>
   <div class="ov" id="ovHand" hidden><div class="ovc"><p class="kicker">Pedido guardado</p><h2>El robot BOT-VENTAS-01 ya tomó tu pedido</h2><p>Trabaja en su propia computadora, una máquina virtual. Puedes entrar y ver lo que hace en tiempo real.</p>
     <div class="acts"><button class="btn primary big" id="bEnter2" type="button">Entrar a la máquina del robot →</button></div></div></div>
   <div class="ov" id="ovDone" hidden><div class="ovc"><p class="kicker">Proceso terminado</p><h2>Pedido completado</h2><p id="doneP"></p>
@@ -633,12 +658,15 @@ function bindSeller() {
 function start() {
   $('#ovIntro').hidden = true; S.phase = 'capture';
   step(1, 'active'); narrate(1);
+  VOICES.forEach(vaudio);
+  S.v1 = say('voz-01-captura', true);
   if (auto) autoCapture(); else $('#fProd').focus();
 }
 async function autoCapture() {
   try {
     const my = token;
     await wait(1600, false);
+    if (S.v1) await vwait(S.v1);
     S.disc = 15; const r = $('input[name=disc][value="15"]'); if (r) r.checked = true; $('#tot').innerHTML = totHTML(calc());
     await wait(2200, false);
     if (my === token && S.phase === 'capture') submitOrder();
@@ -652,6 +680,7 @@ function submitOrder() {
   step(1, 'done');
   S.clock = new Date();
   log('Ventas guardó el pedido en el caso ' + CASE_ID, 'ok');
+  say('voz-02-maquina', true);
   setTimeout(() => { if (S.phase !== 'handoff') return; $('#ovHand').hidden = false; $('#bEnter').hidden = false; $('#bEnter2').focus(); if (auto) wait(2200, false).then(() => S.phase === 'handoff' && enterVM()).catch(() => {}); }, 700);
 }
 function enterVM() {
@@ -708,8 +737,10 @@ function setPath(pfx, i) { $('#' + pfx + 'Path').querySelectorAll('li').forEach(
 
 async function runRobot() {
   const c0 = calc();
+  await vwait(vchain);
   /* Paso 2 · Validación en el CRM */
   step(2, 'active'); narrate(2);
+  const v3 = say('voz-03-validacion');
   log('BOT-VENTAS-01 tomó la tarea "Alta de pedido"');
   await wait(500);
   await openApp('sf');
@@ -732,6 +763,7 @@ async function runRobot() {
   if (S.exc) { $('#bC4').className = 'bad'; $('#bC4').textContent = `Descuento ${S.disc} % mayor a la política (${POLICY_MAX} %)`; log(`Descuento ${S.disc} % supera la política de ${POLICY_MAX} %`, 'warn'); }
   else { $('#bC4').className = 'ok'; log(`Descuento ${S.disc} % dentro de la política`, 'ok'); }
   await wait(500);
+  await vwait(v3);
   step(2, 'done');
 
   /* Paso 3 · Autorización (solo si hace falta) */
@@ -741,7 +773,7 @@ async function runRobot() {
     $('#vDlgB').innerHTML = `El descuento de <b>${S.disc} %</b> supera el límite de la operación (<b>${POLICY_MAX} %</b>).<br>El robot detuvo el pedido ${CASE_ID} y pidió autorización a ventas.`;
     $('#vDlg').hidden = false;
     log('Detuvo el pedido y pidió autorización a ventas', 'warn');
-    const choice = await askDecision();
+    const choice = await askDecision(say('voz-04a-autorizacion'));
     $('#vDlg').hidden = true; $('#vmState').textContent = 'Robot trabajando';
     S.decided = choice;
     if (choice === 'adjust') {
@@ -756,12 +788,13 @@ async function runRobot() {
     await wait(600);
     step(3, 'done');
   } else {
-    step(3, 'skip'); narrate('3skip'); await wait(1800);
+    step(3, 'skip'); narrate('3skip'); const v4 = say('voz-04b-sin-excepcion'); await wait(1800); await vwait(v4);
   }
   const c = calc();
 
   /* Paso 4 · TP Client */
   step(4, 'active'); narrate(4);
+  const v5 = say('voz-05-tpclient');
   await openApp('tp');
   await moveTo('#tpQ'); await click('#tpQ'); await typeIn('#tpQ', CLIENT_ID);
   await moveTo('#tpFind'); await click('#tpFind');
@@ -781,10 +814,12 @@ async function runRobot() {
   tpRow('Alerta enviada a Instalaciones');
   log('Envió alerta al equipo de instalaciones', 'ok');
   await wait(900);
+  await vwait(v5);
   step(4, 'done');
 
   /* Paso 5 · Registro en el CRM */
   step(5, 'active'); narrate(5);
+  const v6 = say('voz-06-registro');
   await openApp('sf');
   $('#bReg').disabled = false;
   await moveTo('#bReg'); await click('#bReg');
@@ -793,10 +828,12 @@ async function runRobot() {
   toast('#wSfToast', '✓ Pedido ' + ORDER_ID + ' creado');
   log('Registró el pedido ' + ORDER_ID + ' y actualizó el caso', 'ok');
   await wait(1200);
+  await vwait(v6);
   step(5, 'done');
 
   /* Paso 6 · Genesys Cloud */
   step(6, 'active'); narrate(6);
+  const v7 = say('voz-07-aviso');
   await openApp('gc');
   await moveTo('#gcSms'); await click('#gcSms'); $('#gcSms').classList.add('on');
   await moveTo('#gcTpl'); await click('#gcTpl'); $('#gcTpl').textContent = 'Confirmación de pedido';
@@ -810,10 +847,12 @@ async function runRobot() {
   await wait(1000); sm.textContent = 'Entregado ✓';
   log('Genesys Cloud confirmó la entrega del SMS', 'ok');
   await wait(900);
+  await vwait(v7);
   step(6, 'done');
 
   /* Paso 7 · Calidad → EMA */
   step(7, 'active'); narrate(7);
+  const v8 = say('voz-08-calidad');
   await openApp('q');
   await read('#qCalls', 900);
   await moveTo('#qRun'); await click('#qRun');
@@ -828,6 +867,7 @@ async function runRobot() {
   await wait(600); $('#qN').textContent = '2'; $('#qTxt').textContent = 'transcripciones recibidas ✓';
   log('EMA recibió las transcripciones para evaluar la calidad', 'ok');
   await wait(900);
+  await vwait(v8);
   step(7, 'done');
 
   /* Fin */
@@ -843,15 +883,16 @@ async function runRobot() {
     : `Tú capturaste el pedido. El robot hizo todo lo demás, sin detenerse, y dejó ${S.actions} acciones registradas en la bitácora.`;
   $('#cursor').hidden = true;
   $('#ovDone').hidden = false; $('#bAgain').focus();
+  say('voz-09-cierre');
 }
 
-function askDecision() {
+function askDecision(voiceDone = Promise.resolve()) {
   const my = token, card = $('#decide');
   $('#dAsk').textContent = S.disc + ' %'; $('#dPol').textContent = 'hasta ' + POLICY_MAX + ' %'; $('#dTot').textContent = money(calc().mon) + ' al mes';
   $('#bAdjust').textContent = `Ajustar a ${POLICY_MAX} %`;
   card.hidden = false; $('#bApprove').focus();
   return new Promise((res, rej) => {
-    let timer = null, left = 6;
+    let timer = null, left = 4;
     const done = v => { clearInterval(timer); clearInterval(guard); card.hidden = true; $('#dCount').hidden = true; res(v); };
     $('#bApprove').onclick = () => done('approve');
     $('#bAdjust').onclick = () => done('adjust');
@@ -859,15 +900,19 @@ function askDecision() {
     if (auto) {
       const cnt = $('#dCount'); cnt.hidden = false;
       const show = () => { cnt.textContent = `Modo automático: se autorizará en ${left} s.`; };
-      show();
-      timer = setInterval(() => { if (paused) return; left--; if (left <= 0) done('approve'); else show(); }, 1000);
+      cnt.textContent = 'Modo automático: se autorizará al terminar la explicación.';
+      voiceDone.then(() => {
+        if (my !== token || card.hidden) return;
+        show();
+        timer = setInterval(() => { if (paused) return; left--; if (left <= 0) done('approve'); else show(); }, 1000);
+      });
     }
   });
 }
 
 /* ===== controles ===== */
 function reset(skipIntro) {
-  token++; paused = false; setPauseUI();
+  token++; paused = false; setPauseUI(); stopVoice();
   S = fresh();
   renderSteps(); renderStage();
   $('#decide').hidden = true; $('#bEnter').hidden = true;
@@ -888,7 +933,9 @@ function setPauseUI() {
   b.querySelector('svg').innerHTML = paused ? '<path d="M7 4v16l13-8z"/>' : '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';
   b.setAttribute('aria-pressed', paused);
 }
-$('#bPause').addEventListener('click', () => { paused = !paused; setPauseUI(); });
+function togglePause() { paused = !paused; setPauseUI(); if (vcur) { if (paused) vcur.a.pause(); else vcur.a.play().catch(() => {}); } }
+$('#bPause').addEventListener('click', togglePause);
+$('#bVoice').addEventListener('click', e => { voiceOn = !voiceOn; e.currentTarget.setAttribute('aria-pressed', voiceOn); if (!voiceOn) stopVoice(); });
 $('#bSpeed').addEventListener('click', e => { speed = speed === 1 ? 2 : 1; e.currentTarget.textContent = `Velocidad ${speed}×`; });
 $('#bAuto').addEventListener('click', e => {
   auto = !auto; e.currentTarget.setAttribute('aria-pressed', auto);
@@ -901,7 +948,7 @@ $('#bReset').addEventListener('click', () => reset(false));
 $('#bEnter').addEventListener('click', enterVM);
 addEventListener('keydown', e => {
   if (e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
-  if (e.key === 'p' || e.key === 'P') { paused = !paused; setPauseUI(); }
+  if (e.key === 'p' || e.key === 'P') togglePause();
   if (e.key === 'r' || e.key === 'R') reset(false);
 });
 
