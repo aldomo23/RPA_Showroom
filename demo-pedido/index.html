@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Demo en vivo · Alta de pedido · IT Solutions</title>
-<meta name="description" content="Simulación interactiva: capturas un pedido en Salesforce y ves al robot terminar el proceso en TP Client y Genesys Cloud.">
+<meta name="description" content="Simulación interactiva: capturas un pedido en el CRM y ves al robot terminar el proceso en TP Client y Genesys Cloud.">
 <meta name="theme-color" content="#f4f5f7">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111827' stroke-width='1.5' stroke-linejoin='round'%3E%3Cpath d='M12 2.5 20.2 7.25v9.5L12 21.5 3.8 16.75v-9.5Z'/%3E%3C/svg%3E">
 <link rel="preload" href="../fonts/SpaceGrotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -117,7 +117,7 @@ button{font:inherit; color:inherit}
 .tb.on{background:rgba(37,99,235,.12); box-shadow:inset 0 -2px 0 #2563eb}
 .scene-vm .tb.on{background:rgba(255,255,255,.1); box-shadow:inset 0 -2px 0 var(--gold)}
 .clock{margin-left:auto; font-size:13px; font-variant-numeric:tabular-nums; opacity:.8}
-.ic{display:inline-grid; place-items:center; width:20px; height:20px; border-radius:5px; color:#fff; font-size:10px; font-style:normal; font-weight:700; font-family:var(--display); line-height:1; flex:none}
+.ic{display:inline-grid; place-items:center; min-width:20px; height:20px; padding:0 3px; border-radius:5px; color:#fff; font-size:10px; font-style:normal; font-weight:700; font-family:var(--display); line-height:1; flex:none}
 .i-sf{background:#0176d3} .i-tp{background:#5b2a86} .i-gc{background:#ff4f1f} .i-q{background:#e0a100; color:#3a2500} .i-os{background:#111827}
 
 .win{position:absolute; left:16px; right:16px; top:16px; bottom:56px; display:flex; flex-direction:column; overflow:hidden; border-radius:10px; background:#fff; box-shadow:0 10px 40px rgba(0,0,0,.25); color:#16191d}
@@ -129,7 +129,7 @@ button{font:inherit; color:inherit}
 .titlebar .wctl{margin-left:auto; letter-spacing:10px; color:#8a929e}
 .wbody{flex:1; min-height:0; position:relative; overflow:hidden}
 
-/* ---------- Salesforce (aproximación) ---------- */
+/* ---------- CRM del cliente (aproximación) ---------- */
 .sf{background:#f3f3f3; height:100%; display:flex; flex-direction:column}
 .sf-g{display:flex; align-items:center; gap:16px; height:48px; padding:0 16px; background:#fff; border-bottom:1px solid #e5e5e5}
 .sf-brand{display:flex; align-items:center; gap:8px; font-weight:700; color:#032d60; font-size:15px; width:240px}
@@ -359,7 +359,7 @@ button{font:inherit; color:inherit}
     </div>
     <div class="fit" id="fit"><div class="stage" id="stage"></div></div>
     <p class="mob">Para presentar, ábrela en una computadora: se ve más grande y clara.</p>
-    <p class="note">Simulación con datos inventados. Las pantallas imitan Salesforce, TP Client y Genesys Cloud; no son los sistemas reales.</p>
+    <p class="note">Simulación con datos inventados. Las pantallas imitan el CRM del cliente, TP Client y Genesys Cloud; no son los sistemas reales.</p>
   </section>
 
   <aside class="side" aria-label="Explicación">
@@ -405,21 +405,21 @@ const PRODUCTS = {
 };
 const CREDIT_LINE = 500000;
 const STEPS = [
-  { b: 'Captura',          s: 'Salesforce' },
-  { b: 'Validación',       s: 'Salesforce' },
+  { b: 'Captura',          s: 'CRM' },
+  { b: 'Validación',       s: 'CRM' },
   { b: 'Autorización',     s: 'Ventas' },
   { b: 'Estatus y alerta', s: 'TP Client' },
-  { b: 'Registro',         s: 'Salesforce' },
+  { b: 'Registro',         s: 'CRM' },
   { b: 'Aviso al cliente', s: 'Genesys Cloud' },
   { b: 'Calidad',          s: 'EMA' },
 ];
 const NARR = {
-  1: ['Paso 1 · Tú', 'Captura el pedido en Salesforce', 'Eres ejecutivo de ventas. Acabas de cerrar una venta con Distribuidora Aurora: elige el paquete, las sucursales, el plazo y el descuento, y guarda. Es lo único que se hace a mano.', `Política de esta operación: hasta ${POLICY_MAX} % de descuento sin autorización. Elige más para ver qué hace el robot con una excepción.`],
-  2: ['Paso 2 · Robot', 'El robot valida el pedido', 'Desde su propia máquina, el robot entra a Salesforce, busca el caso y revisa los datos del cliente, el crédito y el descuento. Hace lo mismo que haría una persona, sin saltarse pasos.'],
+  1: ['Paso 1 · Tú', 'Captura el pedido en el CRM', 'Eres ejecutivo de ventas. Acabas de cerrar una venta con Distribuidora Aurora: elige el paquete, las sucursales, el plazo y el descuento, y guarda. Es lo único que se hace a mano.', `Política de esta operación: hasta ${POLICY_MAX} % de descuento sin autorización. Elige más para ver qué hace el robot con una excepción.`],
+  2: ['Paso 2 · Robot', 'El robot valida el pedido', 'Desde su propia máquina, el robot entra al CRM del cliente, busca el caso y revisa los datos del cliente, el crédito y el descuento. Hace lo mismo que haría una persona, sin saltarse pasos.'],
   3: ['Paso 3 · Tú', 'El robot se detiene y te pregunta', 'El descuento pasa la política de la operación. El robot no decide por su cuenta: detiene el pedido y pide autorización. Las excepciones siempre las decide una persona.'],
   '3skip': ['Paso 3', 'No hace falta autorización', 'El descuento está dentro de la política, así que el robot sigue sin detenerse.'],
   4: ['Paso 4 · Robot', 'Actualiza el estatus en TP Client', 'El robot abre TP Client, busca al cliente, cambia su estatus a "cliente activo" y manda una alerta al equipo de instalaciones.'],
-  5: ['Paso 5 · Robot', 'Registra el pedido en Salesforce', 'De vuelta en Salesforce, el robot registra el pedido. El caso queda con número de pedido y en estado "Pedido registrado".'],
+  5: ['Paso 5 · Robot', 'Registra el pedido en el CRM', 'De vuelta en el CRM, el robot registra el pedido. El caso queda con número de pedido y en estado "Pedido registrado".'],
   6: ['Paso 6 · Robot', 'Avisa al cliente desde Genesys Cloud', 'El robot envía la confirmación al cliente por SMS desde Genesys Cloud, con el número de pedido.'],
   7: ['Paso 7 · Robot de calidad', 'Muestra de calidad para EMA', `Al final del día, otro robot toma las transcripciones de las llamadas, elige una muestra del ${SAMPLE_PCT} % con un desarrollo en Python y la deja en la carpeta que se sube a EMA para revisar la calidad.`],
   done: ['Listo', 'Pedido completado', 'Tú capturaste el pedido y tomaste la decisión. El robot hizo todo lo demás en tres sistemas y dejó registro de cada acción.'],
@@ -501,12 +501,12 @@ const icoCase = '<svg viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d
 const icoSearch = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>';
 function taskbar(vm) {
   const apps = vm
-    ? [['sf', 'Salesforce', 'SF'], ['tp', 'TP Client', 'TP'], ['gc', 'Genesys Cloud', 'G'], ['q', 'Calidad · EMA', 'Q']]
-    : [['sf', 'Salesforce', 'SF']];
+    ? [['sf', 'CRM del cliente', 'CRM'], ['tp', 'TP Client', 'TP'], ['gc', 'Genesys Cloud', 'G'], ['q', 'Calidad · EMA', 'Q']]
+    : [['sf', 'CRM del cliente', 'CRM']];
   return `<div class="task"><span class="ic i-os" aria-hidden="true">⊞</span>${apps.map(a => `<span class="tb" data-app="${a[0]}" id="${vm ? 'tbv' : 'tbp'}-${a[0]}"><i class="ic i-${a[0]}">${a[2]}</i>${a[1]}</span>`).join('')}<span class="clock" id="${vm ? 'clkV' : 'clkP'}"></span></div>`;
 }
 function sfFrame(id, inner, searchId) {
-  return `<div class="win" id="${id}"><div class="titlebar"><i class="ic i-sf">SF</i>Salesforce · ${BRAND} — Ventas<span class="wctl">— ▢ ✕</span></div><div class="wbody"><div class="sf">
+  return `<div class="win" id="${id}"><div class="titlebar"><i class="ic i-sf">CRM</i>CRM del cliente · ${BRAND} — Ventas<span class="wctl">— ▢ ✕</span></div><div class="wbody"><div class="sf">
     <div class="sf-g"><div class="sf-brand"><i></i>${BRAND}</div><div class="sf-search" id="${searchId}">${icoSearch}<span class="sf-q" id="${searchId}Q"></span><div class="sf-res" id="${searchId}R" hidden><div id="${searchId}Hit"><span class="sf-ico" style="width:24px;height:24px">${icoCase}</span><span><b>Caso ${CASE_ID}</b> · ${CUSTOMER}</span></div></div></div><span class="sf-user">AR</span></div>
     <div class="sf-n"><b>Ventas</b><span>Inicio</span><span>Cuentas</span><span class="on">Casos</span><span>Pedidos</span><span>Informes</span></div>
     <div class="sf-main" id="${id}Main">${inner}</div></div><div class="toast sfx" id="${id}Toast" hidden></div></div></div>`;
@@ -557,7 +557,7 @@ function tpWin() {
       <dt>Producto</dt><dd id="tpProd"></dd><dt>Sucursales</dt><dd id="tpQty"></dd><dt>Última actualización</dt><dd id="tpUpd">hace 2 días · ventas.demo</dd></dl></div>
       <div class="tp-al"><b>Enviar alerta</b><span>Para: <strong>Equipo de instalaciones</strong></span><div class="msg" id="tpMsg"></div><button class="tp-btn" id="tpAlert" type="button" tabindex="-1" style="align-self:flex-end">Enviar alerta</button></div></div>
     <div class="tp-h" id="tpHist" hidden><h4>Historial del cliente</h4><table><thead><tr><th>Cuándo</th><th>Evento</th><th>Usuario</th></tr></thead><tbody id="tpRows">
-      <tr><td>hace 2 días</td><td>Prospecto creado desde Salesforce</td><td>ventas.demo</td></tr>
+      <tr><td>hace 2 días</td><td>Prospecto creado desde el CRM</td><td>ventas.demo</td></tr>
       <tr><td>hace 2 días</td><td>Llamada de presentación · 6:12 min</td><td>ventas.demo</td></tr></tbody></table></div>
     </section></div></div><div class="toast" id="tpToast" hidden></div></div></div>`;
 }
@@ -589,19 +589,19 @@ function renderStage() {
   <div class="scene scene-pc" id="scPc"><div class="wall wall-pc"><span class="mark">Tu computadora · Ventas</span></div>${sfFrame('wSfP', sellerForm(), 'sp')}${taskbar(false)}</div>
   <div class="scene scene-vm" id="scVm" hidden><div class="vmbar"><span class="rec" aria-hidden="true"></span>Conexión remota · BOT-VENTAS-01 · <b id="vmState">Robot trabajando</b></div>
     <div class="wall wall-vm"><span class="mark">Máquina virtual · BOT-VENTAS-01</span></div>
-    ${sfFrame('wSf', '<div class="sf-home">Inicio de Salesforce · busca un caso para empezar</div>', 'bs')}${tpWin()}${gcWin()}${qWin()}
+    ${sfFrame('wSf', '<div class="sf-home">Inicio del CRM · busca un caso para empezar</div>', 'bs')}${tpWin()}${gcWin()}${qWin()}
     <div class="vdlg" id="vDlg" hidden><header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>Tarea detenida · regla de negocio</header><div id="vDlgB"></div></div>
     ${taskbar(true)}</div>
   <div class="cursor" id="cursor" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 2.5v17l4.6-4.3 3.2 6.6 3-1.5-3.2-6.4h6.4Z" fill="#fff" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/></svg><span>Robot</span></div>
   <div class="ov" id="ovIntro"><div class="ovc"><p class="kicker">Tu papel en esta demo</p><h2>Eres ejecutivo de ventas y acabas de cerrar una venta</h2>
     <p>Tu cliente, Distribuidora Aurora, contrató servicios para sus sucursales. Esto es lo que va a pasar:</p>
-    <ol><li><b>Tú</b> capturas el pedido en Salesforce.</li><li><b>El robot</b> lo toma y lo termina en Salesforce, TP Client y Genesys Cloud.</li><li>Si algo sale de la política, <b>el robot se detiene y te pregunta</b>.</li></ol>
+    <ol><li><b>Tú</b> capturas el pedido en el CRM del cliente.</li><li><b>El robot</b> lo toma y lo termina en el CRM, TP Client y Genesys Cloud.</li><li>Si algo sale de la política, <b>el robot se detiene y te pregunta</b>.</li></ol>
     <div class="acts"><button class="btn primary big" id="bStart" type="button">Empezar</button><span class="hint" style="margin:0">o activa “Modo automático” para que avance sola.</span></div></div></div>
   <div class="ov" id="ovHand" hidden><div class="ovc"><p class="kicker">Pedido guardado</p><h2>El robot BOT-VENTAS-01 ya tomó tu pedido</h2><p>Trabaja en su propia computadora, una máquina virtual. Puedes entrar y ver lo que hace en tiempo real.</p>
     <div class="acts"><button class="btn primary big" id="bEnter2" type="button">Entrar a la máquina del robot →</button></div></div></div>
   <div class="ov" id="ovDone" hidden><div class="ovc"><p class="kicker">Proceso terminado</p><h2>Pedido completado</h2><p id="doneP"></p>
     <div class="kpis"><div class="kpi"><b id="kTime"></b><span>trabajo del robot</span></div><div class="kpi"><b>~15 min</b><span>si se hiciera a mano (estimado)</span></div>
-      <div class="kpi"><b>3 + EMA</b><span>Salesforce, TP Client, Genesys Cloud y calidad</span></div><div class="kpi"><b id="kHuman"></b><span id="kHumanL">decisiones de una persona</span></div></div>
+      <div class="kpi"><b>3 + EMA</b><span>CRM, TP Client, Genesys Cloud y calidad</span></div><div class="kpi"><b id="kHuman"></b><span id="kHumanL">decisiones de una persona</span></div></div>
     <div class="acts"><button class="btn primary big" id="bAgain" type="button">Repetir con otro descuento</button><a class="btn big" href="../">Volver al showroom</a></div><p class="hint">Cifras de ejemplo, simuladas.</p></div></div>`;
   bindSeller();
   tick();
@@ -708,7 +708,7 @@ function setPath(pfx, i) { $('#' + pfx + 'Path').querySelectorAll('li').forEach(
 
 async function runRobot() {
   const c0 = calc();
-  /* Paso 2 · Validación en Salesforce */
+  /* Paso 2 · Validación en el CRM */
   step(2, 'active'); narrate(2);
   log('BOT-VENTAS-01 tomó la tarea "Alta de pedido"');
   await wait(500);
@@ -719,7 +719,7 @@ async function runRobot() {
   await moveTo('#bsHit'); $('#bsHit').classList.add('hl'); await click('#bsHit');
   $('#bsR').hidden = true; $('#bsQ').textContent = '';
   $('#wSfMain').innerHTML = botRecord();
-  log('Abrió el caso ' + CASE_ID + ' en Salesforce');
+  log('Abrió el caso ' + CASE_ID + ' en el CRM');
   await wait(500);
   setPath('b', 1); $('#bEstado').textContent = 'En validación';
   log('Cambió el caso a "En validación"');
@@ -783,7 +783,7 @@ async function runRobot() {
   await wait(900);
   step(4, 'done');
 
-  /* Paso 5 · Registro en Salesforce */
+  /* Paso 5 · Registro en el CRM */
   step(5, 'active'); narrate(5);
   await openApp('sf');
   $('#bReg').disabled = false;
